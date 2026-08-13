@@ -14,6 +14,14 @@ if (!$game) {
     exit;
 }
 
+// เกมจะเล่นได้ต่อเมื่อเริ่มเรียนแล้ว และผ่านบทเรียนที่เกมนี้ใช้ครบทุกบท
+// (games.php เป็นที่เดียวที่อธิบายว่ายังขาดอะไร จึงเด้งกลับไปที่นั่น)
+$userId = (int)$user['id'];
+if (!Progress::arcadeGate($userId)['unlocked'] || !Progress::gameGate($userId, $game)['unlocked']) {
+    header('Location: /lmln/games.php?locked=' . urlencode($code));
+    exit;
+}
+
 $drills = [];
 if ($code === 'drill') {
     $drills = $db->query('SELECT prompt_th, hint, accepted_answers FROM drills')->fetchAll();

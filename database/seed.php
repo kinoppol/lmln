@@ -403,25 +403,28 @@ foreach ($LESSON_QUIZ_SOURCE as $n => $items) {
 echo "  lesson quizzes: " . count($LESSON_QUIZ_SOURCE) . " x 3 questions\n";
 
 // ---------------------------------------------------------------- games
+// required_lessons = ตำแหน่งบทเรียนที่ต้องผ่านครบก่อนเล่นได้ ตั้งจากคำสั่งที่เกมนั้นใช้จริง
+// (ดูชุดเครื่องมือ/ใบ้ของแต่ละเกมใน public/js/game.js)
 $GAMES = [
     ['code' => 'virus', 'title_th' => 'ล่าไวรัสในระบบ', 'title_en' => 'Virus Hunt', 'difficulty' => 'ระดับ 1',
         'description' => 'มีไฟล์ติดเชื้อซ่อนอยู่ 3 จุดในเครื่องของฝ่ายบัญชี เดินสำรวจโฟลเดอร์ด้วย cd/ls หาไฟล์ต้องสงสัย แล้วใช้ antivirus แบบ CLI สแกนและกำจัด',
         'brief' => 'เครื่อง acct-01 มีพฤติกรรมผิดปกติ ระบบตรวจพบไฟล์ติดเชื้อ 3 ไฟล์ ภารกิจของคุณคือค้นให้เจอและกำจัดทั้งหมดก่อนเวลา 5 นาทีจะหมด',
-        'time_limit_sec' => 300],
+        'time_limit_sec' => 300, 'required_lessons' => [1, 2]],                 // pwd/ls, cd
     ['code' => 'drill', 'title_th' => 'แข่งพิมพ์คำสั่ง', 'title_en' => 'Speed Drill', 'difficulty' => 'ระดับ 1',
         'description' => 'อ่านโจทย์ภาษาไทย แล้วพิมพ์คำสั่ง Linux ที่ถูกต้องให้ทันเวลา 90 วินาที ตอบถูกติดกันได้โบนัสคอมโบ',
-        'brief' => null, 'time_limit_sec' => 90],
+        'brief' => null, 'time_limit_sec' => 90,
+        'required_lessons' => [1, 2, 3, 4, 5, 6, 7, 8, 9]],                     // โจทย์สุ่มจากคำสั่งครบทุกบท
     ['code' => 'escape', 'title_th' => 'ห้องหนีตาย', 'title_en' => 'Escape Room', 'difficulty' => 'ระดับ 2',
         'description' => 'ติดอยู่ในระบบไฟล์ที่ล็อกไว้ 3 ชั้น แต่ละห้องซ่อนรหัสผ่านไว้คนละที่ ต้องใช้คำสั่งค้นหาและอ่านไฟล์เพื่อหาโค้ดเปิดประตู',
         'brief' => 'คุณถูกล็อกอยู่ในระบบ 3 ชั้น แต่ละชั้นมีรหัส 4 หลักซ่อนอยู่ หารหัสให้เจอแล้วใช้ door --open <รหัส> เพื่อผ่านไปชั้นถัดไป',
-        'time_limit_sec' => 0],
+        'time_limit_sec' => 0, 'required_lessons' => [1, 2, 6, 8, 9]],          // ls -a, cd, cat, chmod 600, grep/find
     ['code' => 'repair', 'title_th' => 'ซ่อมระบบพัง', 'title_en' => 'System Repair', 'difficulty' => 'ระดับ 3',
         'description' => 'มีคนย้ายไฟล์ผิดที่และตั้งสิทธิ์ผิดจนเว็บเซิร์ฟเวอร์ล่ม ใช้ mv และ chmod กู้ทุกอย่างกลับให้ถูกต้อง แล้วรัน sys --check เพื่อยืนยัน',
         'brief' => 'เซิร์ฟเวอร์ web-02 ล่มหลังมีคนแก้ไขผิดพลาด รัน sys --check เพื่อดูรายการที่พัง แล้วแก้ให้ครบทุกข้อ',
-        'time_limit_sec' => 0],
+        'time_limit_sec' => 0, 'required_lessons' => [1, 2, 4, 8]],             // ls -l, cd, mv, chmod
 ];
-$gameStmt = $db->prepare('INSERT INTO games (code, title_th, title_en, difficulty, description, brief, time_limit_sec) VALUES (?,?,?,?,?,?,?)');
-foreach ($GAMES as $g) $gameStmt->execute([$g['code'], $g['title_th'], $g['title_en'], $g['difficulty'], $g['description'], $g['brief'], $g['time_limit_sec']]);
+$gameStmt = $db->prepare('INSERT INTO games (code, title_th, title_en, difficulty, description, brief, time_limit_sec, required_lessons) VALUES (?,?,?,?,?,?,?,?)');
+foreach ($GAMES as $g) $gameStmt->execute([$g['code'], $g['title_th'], $g['title_en'], $g['difficulty'], $g['description'], $g['brief'], $g['time_limit_sec'], json_encode($g['required_lessons'])]);
 echo "  games: " . count($GAMES) . "\n";
 
 // ---------------------------------------------------------------- drills

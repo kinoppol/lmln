@@ -111,16 +111,24 @@ final class QuizGrader
         return ['score' => $score, 'total' => $total, 'passed' => $pct >= (int)$row['pass_threshold_pct']];
     }
 
+    /**
+     * เฉลยรายข้อของการทำแบบทดสอบครั้งนั้น — ไล่จาก quiz_questions เป็นหลัก
+     * เพื่อให้ข้อที่ไม่ได้ตอบก็ยังขึ้นในเฉลย (is_correct จะเป็น NULL)
+     */
     public static function reviewRows(int $attemptId): array
     {
         $db = Database::get();
         $stmt = $db->prepare(
-            'SELECT qq.position, qq.question_text, qa.is_correct,
+            'SELECT qq.position, qq.question_text, qq.code_snippet, qq.is_mono, qq.explanation,
+                    qa.is_correct, qa.selected_option_id,
+                    (SELECT option_text FROM quiz_options WHERE id = qa.selected_option_id) AS selected_text,
                     (SELECT option_text FROM quiz_options WHERE question_id = qq.id AND is_correct = 1 LIMIT 1) AS correct_text
-             FROM quiz_answers qa JOIN quiz_questions qq ON qq.id = qa.question_id
-             WHERE qa.attempt_id = ? ORDER BY qq.position'
+             FROM quiz_questions qq
+             LEFT JOIN quiz_answers qa ON qa.question_id = qq.id AND qa.attempt_id = ?
+             WHERE qq.quiz_id = (SELECT quiz_id FROM quiz_attempts WHERE id = ?)
+             ORDER BY qq.position'
         );
-        $stmt->execute([$attemptId]);
+        $stmt->execute([$attemptId, $attemptId]);
         return $stmt->fetchAll();
     }
 }

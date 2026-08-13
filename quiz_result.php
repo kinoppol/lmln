@@ -72,16 +72,63 @@ Layout::start('ผลคะแนน', $user);
     <a class="btn btn-ghost" href="<?= $retakeHref ?>">ทำใหม่อีกครั้ง</a>
   </div>
 
-  <div style="margin-top:34px;text-align:left;padding:20px 22px;border-radius:13px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)">
-    <div style="font-size:12px;font-weight:600;color:#8ea59d;letter-spacing:.06em;margin-bottom:12px">สรุปรายข้อ · ITEM REVIEW</div>
-    <?php foreach ($review as $r): $ok = (int)$r['is_correct'] === 1; ?>
-      <div class="review-row">
-        <span class="review-n" style="background:<?= $ok ? 'rgba(74,222,128,.14)' : 'rgba(248,113,113,.14)' ?>;color:<?= $ok ? 'var(--green)' : 'var(--red)' ?>"><?= (int)$r['position'] ?></span>
-        <span style="flex:1;font-size:12.5px;color:#a9bcb5"><?= htmlspecialchars($r['question_text']) ?></span>
-        <span style="font-family:var(--mono);font-size:11.5px;color:<?= $ok ? 'var(--green)' : 'var(--red)' ?>"><?= $ok ? 'ถูก' : 'ผิด · เฉลย ' . htmlspecialchars($r['correct_text']) ?></span>
+  <?php if ($kind === 'lesson'): ?>
+    <div style="margin-top:34px;text-align:left;padding:20px 22px;border-radius:13px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)">
+      <div style="font-size:12px;font-weight:600;color:#8ea59d;letter-spacing:.06em;margin-bottom:12px">สรุปรายข้อ · ITEM REVIEW</div>
+      <?php foreach ($review as $r): $ok = (int)$r['is_correct'] === 1; ?>
+        <div class="review-row">
+          <span class="review-n" style="background:<?= $ok ? 'rgba(74,222,128,.14)' : 'rgba(248,113,113,.14)' ?>;color:<?= $ok ? 'var(--green)' : 'var(--red)' ?>"><?= (int)$r['position'] ?></span>
+          <span style="flex:1;font-size:12.5px;color:#a9bcb5"><?= htmlspecialchars($r['question_text']) ?></span>
+          <span style="font-family:var(--mono);font-size:11.5px;color:<?= $ok ? 'var(--green)' : 'var(--red)' ?>"><?= $ok ? 'ถูก' : 'ผิด · เฉลย ' . htmlspecialchars((string)$r['correct_text']) ?></span>
+        </div>
+      <?php endforeach; ?>
+    </div>
+
+  <?php else: ?>
+    <?php // ก่อน/หลังเรียนไม่เฉลยระหว่างทำ จึงเฉลยเต็มรูปแบบตรงนี้ทีเดียว ?>
+    <div style="margin-top:34px;text-align:left">
+      <div class="answer-key-head">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#e3efe9">เฉลยทั้งชุด · ANSWER KEY</div>
+          <div style="font-size:11.5px;color:#6f837c;margin-top:3px">ทบทวนได้ทุกข้อ พร้อมคำอธิบายว่าทำไมคำตอบนั้นถูก</div>
+        </div>
+        <div style="font-family:var(--mono);font-size:12px;color:<?= $scoreColor ?>">ถูก <?= $score ?> · ผิด <?= $total - $score ?></div>
       </div>
-    <?php endforeach; ?>
-  </div>
+
+      <?php foreach ($review as $r):
+          $ok = (int)$r['is_correct'] === 1;
+          $noAnswer = $r['selected_option_id'] === null;
+          $mono = (int)$r['is_mono'] === 1 ? 'font-family:var(--mono);' : '';
+      ?>
+        <div class="answer-key-item <?= $ok ? 'ok' : 'bad' ?>">
+          <div class="answer-key-q">
+            <span class="review-n" style="background:<?= $ok ? 'rgba(74,222,128,.14)' : 'rgba(248,113,113,.14)' ?>;color:<?= $ok ? 'var(--green)' : 'var(--red)' ?>"><?= (int)$r['position'] ?></span>
+            <span style="flex:1;font-size:13px;line-height:1.7;color:#d6e4de"><?= htmlspecialchars($r['question_text']) ?></span>
+            <span class="answer-key-verdict" style="color:<?= $ok ? 'var(--green)' : 'var(--red)' ?>"><?= $ok ? '✓ ถูก' : '✕ ผิด' ?></span>
+          </div>
+
+          <?php if (!empty($r['code_snippet'])): ?>
+            <div class="q-code" style="margin:10px 0 0"><?= htmlspecialchars($r['code_snippet']) ?></div>
+          <?php endif; ?>
+
+          <?php if (!$ok): ?>
+            <div class="answer-key-row">
+              <span class="lbl">คำตอบของคุณ</span>
+              <span class="val" style="color:#fca5a5;<?= $mono ?>"><?= $noAnswer ? 'ไม่ได้ตอบ' : htmlspecialchars((string)$r['selected_text']) ?></span>
+            </div>
+          <?php endif; ?>
+          <div class="answer-key-row">
+            <span class="lbl">คำตอบที่ถูก</span>
+            <span class="val" style="color:var(--green);<?= $mono ?>"><?= htmlspecialchars((string)$r['correct_text']) ?></span>
+          </div>
+
+          <?php if (!empty($r['explanation'])): ?>
+            <div class="answer-key-exp"><?= htmlspecialchars($r['explanation']) ?></div>
+          <?php endif; ?>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
 </div>
 <?php
 Layout::end();

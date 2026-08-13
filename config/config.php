@@ -2,11 +2,18 @@
 declare(strict_types=1);
 
 // ---- database ----
-define('DB_HOST', getenv('LQ_DB_HOST') ?: '127.0.0.1');
-define('DB_PORT', getenv('LQ_DB_PORT') ?: '3306');
-define('DB_NAME', getenv('LQ_DB_NAME') ?: 'linuxquest_lms');
-define('DB_USER', getenv('LQ_DB_USER') ?: 'root');
-define('DB_PASS', getenv('LQ_DB_PASS') ?: '');
+// db.local.php is written by install.php (untracked). Precedence: env > db.local.php > default.
+$localDb = is_file(__DIR__ . '/db.local.php') ? (require __DIR__ . '/db.local.php') : [];
+if (!is_array($localDb)) {
+    $localDb = [];
+}
+
+define('DB_HOST', getenv('LQ_DB_HOST') ?: ($localDb['host'] ?? '127.0.0.1'));
+define('DB_PORT', getenv('LQ_DB_PORT') ?: ($localDb['port'] ?? '3306'));
+define('DB_NAME', getenv('LQ_DB_NAME') ?: ($localDb['name'] ?? 'linuxquest_lms'));
+define('DB_USER', getenv('LQ_DB_USER') ?: ($localDb['user'] ?? 'root'));
+define('DB_PASS', getenv('LQ_DB_PASS') ?: ($localDb['pass'] ?? ''));
+unset($localDb);
 
 // ---- app ----
 define('APP_NAME', 'LinuxQuest LMS');

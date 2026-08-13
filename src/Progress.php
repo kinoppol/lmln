@@ -143,6 +143,84 @@ final class Progress
         return true;
     }
 
+    public static function pretestDone(int $userId, int $courseId): bool
+    {
+        $stmt = Database::get()->prepare(
+            "SELECT COUNT(*) FROM quiz_attempts a JOIN quizzes q ON q.id = a.quiz_id
+             WHERE a.user_id = ? AND q.course_id = ? AND q.kind = 'pretest' AND a.completed_at IS NOT NULL"
+        );
+        $stmt->execute([$userId, $courseId]);
+        return (int)$stmt->fetchColumn() > 0;
+    }
+
+    /**
+     * ประตูชั้นแรกของโซนเกม: ต้อง "เริ่มเรียน" ก่อน คือทำแบบทดสอบก่อนเรียน
+     * และผ่านบทเรียนอย่างน้อย 1 บท
+     *
+     * @return array{unlocked:bool, missing:array<int,array{text:string,href:string,cta:string}>}
+     */
+    public static function arcadeGate(int $userId, int $courseId = 1): array
+    {
+        $missing = [];
+        if (!self::pretestDone($userId, $courseId)) {
+            $missing[] = [
+                'text' => 'ทำแบบทดสอบก่อนเรียนให้เสร็จก่อน',
+                'href' => '/lmln/quiz.php?kind=pretest',
+                'cta' => 'ไปทำแบบทดสอบก่อนเรียน',
+            ];
+        }
+        if (self::doneCount($userId) < 1) {
+            $missing[] = [
+                'text' => 'เรียนและผ่านบทเรียนอย่างน้อย 1 บท',
+                'href' => '/lmln/course.php',
+                'cta' => 'ไปหน้าบทเรียน',
+            ];
+        }
+        return ['unlocked' => $missing === [], 'missing' => $missing];
+    }
+
+    /**
+     * ประตูของเกมแต่ละเกม: ต้องผ่านบทเรียนที่เกมนั้นใช้คำสั่งครบทุกบท
+     * (games.required_lessons เก็บเป็น JSON ของ lessons.position)
+     *
+     * @return array{unlocked:bool, required:int[], missing:array<int,array>, doneOf:string}
+     */
+    public static function gameGate(int $userId, array $game, int $courseId = 1): array
+    {
+        $required = array_values(array_filter(array_map(
+            'intval',
+            json_decode((string)($game['required_lessons'] ?? '[]'), true) ?: []
+        )));
+
+        if (!$required) {
+            return ['unlocked' => true, 'required' => [], 'missing' => [], 'doneOf' => '0/0'];
+        }
+
+        $in = implode(',', array_map('strval', $required));
+        $stmt = Database::get()->prepare(
+            "SELECT l.id, l.position, l.title_th, l.commands_summary, p.status
+             FROM lessons l
+             LEFT JOIN user_lesson_progress p ON p.lesson_id = l.id AND p.user_id = ?
+             WHERE l.course_id = ? AND l.position IN ($in)
+             ORDER BY l.position"
+        );
+        $stmt->execute([$userId, $courseId]);
+        $rows = $stmt->fetchAll();
+
+        $missing = [];
+        foreach ($rows as $r) {
+            if (($r['status'] ?? null) !== 'completed') {
+                $missing[] = $r;
+            }
+        }
+        return [
+            'unlocked' => $missing === [],
+            'required' => $required,
+            'missing' => $missing,
+            'doneOf' => (count($rows) - count($missing)) . '/' . count($rows),
+        ];
+    }
+
     public static function courseCompleted(int $userId, int $courseId): bool
     {
         $stmt = Database::get()->prepare(

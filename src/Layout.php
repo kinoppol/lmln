@@ -3,8 +3,13 @@ declare(strict_types=1);
 
 final class Layout
 {
-    public static function start(string $title, ?array $user, string $active = ''): void
+    /** เก็บไว้ให้ end() วาด modal ยืนยันออกจากระบบได้โดยไม่ต้องรับพารามิเตอร์ซ้ำ */
+    private static ?array $currentUser = null;
+
+    /** $mainClass = คลาสเสริมของ <main> สำหรับหน้าที่ไม่ใช้การจัดวางแบบกึ่งกลาง เช่น หน้า Landing */
+    public static function start(string $title, ?array $user, string $active = '', string $mainClass = ''): void
     {
+        self::$currentUser = $user;
         $doneCount = $user ? Progress::doneCount((int)$user['id']) : 0;
         $level = $user ? Progress::level((int)$user['xp']) : 1;
         ?>
@@ -65,20 +70,64 @@ final class Layout
         <div class="bar-track"><div class="bar-fill" style="width:<?= round($doneCount / LESSON_COUNT * 100) ?>%"></div></div>
         <div class="nav-progress-sub"><?= $doneCount ?> จาก <?= LESSON_COUNT ?> บทเรียน</div>
       </div>
-      <a class="nav-logout" href="/lmln/logout.php">ออกจากระบบ ↺</a>
+      <button type="button" class="nav-logout" id="logoutBtn">ออกจากระบบ ↺</button>
     </nav>
     <main class="app-main">
 <?php else: ?>
-  <main class="app-main auth-main">
+  <main class="app-main auth-main <?= htmlspecialchars($mainClass) ?>">
 <?php endif; ?>
         <?php
     }
 
     public static function end(): void
     {
+        $user = self::$currentUser;
         ?>
     </main>
   </div>
+<?php if ($user): ?>
+  <div class="modal-backdrop" id="logoutModal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle">
+      <div class="modal-icon">↺</div>
+      <div class="modal-title" id="logoutModalTitle">ออกจากระบบ?</div>
+      <p class="modal-body">
+        กำลังออกจากระบบในชื่อ <strong><?= htmlspecialchars($user['full_name']) ?></strong><br>
+        ความคืบหน้าและคะแนนที่ทำไว้ถูกบันทึกไว้แล้ว เข้าสู่ระบบใหม่เมื่อไหร่ก็เรียนต่อจากเดิมได้
+      </p>
+      <form method="post" action="/lmln/logout.php" class="modal-actions">
+        <?= Csrf::field() ?>
+        <button type="button" class="btn btn-ghost" id="logoutCancel">ยกเลิก</button>
+        <button type="submit" class="btn btn-danger">ออกจากระบบ</button>
+      </form>
+    </div>
+  </div>
+  <script>
+  (function () {
+    var modal = document.getElementById('logoutModal');
+    var openBtn = document.getElementById('logoutBtn');
+    var cancelBtn = document.getElementById('logoutCancel');
+    if (!modal || !openBtn) return;
+    var lastFocused = null;
+
+    function open() {
+      lastFocused = document.activeElement;
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+      cancelBtn.focus();
+    }
+    function close() {
+      modal.hidden = true;
+      document.body.style.overflow = '';
+      if (lastFocused) lastFocused.focus();
+    }
+
+    openBtn.addEventListener('click', open);
+    cancelBtn.addEventListener('click', close);
+    modal.addEventListener('mousedown', function (e) { if (e.target === modal) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) close(); });
+  })();
+  </script>
+<?php endif; ?>
 </div>
 </body>
 </html>

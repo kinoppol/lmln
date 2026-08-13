@@ -161,7 +161,10 @@ CREATE TABLE games (
   difficulty VARCHAR(30) NOT NULL,
   description TEXT NOT NULL,
   brief TEXT NULL,
-  time_limit_sec INT UNSIGNED NOT NULL DEFAULT 0
+  time_limit_sec INT UNSIGNED NOT NULL DEFAULT 0,
+  -- ตำแหน่งบทเรียน (lessons.position) ที่ต้องผ่านครบก่อนถึงจะเล่นเกมนี้ได้
+  -- เช่น [1,2,4,8] — ดู Progress::gameGate()
+  required_lessons JSON NOT NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE game_scores (

@@ -35,6 +35,10 @@ function qsBase(string $kind, ?int $lessonId): string
     return $s;
 }
 
+// แบบทดสอบท้ายบทเป็นการฝึก จึงเฉลยทันทีทีละข้อ ส่วนก่อน/หลังเรียนเป็นการวัดผล
+// จึงไม่เฉลยระหว่างทำ แต่ไปแสดงเฉลยทั้งชุดในหน้าผลคะแนน (quiz_result.php)
+$revealPerQuestion = $kind === 'lesson';
+
 // ---- handle answer POST ----
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     Csrf::requireValid($_POST['csrf_token'] ?? null);
@@ -49,7 +53,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     QuizGrader::submitAnswer($attemptId, $questionId, $optionId);
-    header('Location: ' . qsBase($kind, $lessonId) . "&attempt=$attemptId&q=$q&picked=" . ($optionId ?? '0'));
+
+    $next = qsBase($kind, $lessonId) . "&attempt=$attemptId";
+    $next .= $revealPerQuestion ? "&q=$q&picked=" . ($optionId ?? '0') : '&q=' . ($q + 1);
+    header('Location: ' . $next);
     exit;
 }
 
@@ -92,7 +99,7 @@ if ($q > $total) {
 }
 
 $question = $questions[$q - 1];
-$answered = $picked !== null;
+$answered = $revealPerQuestion && $picked !== null;
 
 $titleMap = ['pretest' => 'แบบทดสอบก่อนเรียน', 'posttest' => 'แบบทดสอบหลังเรียน', 'lesson' => $quiz['title_th']];
 $tagMap = ['pretest' => 'PRE-TEST · ก่อนเรียน', 'posttest' => 'POST-TEST · หลังเรียน', 'lesson' => 'แบบทดสอบท้ายบท'];
@@ -106,7 +113,9 @@ Layout::start($titleMap[$kind], $user, $kind === 'lesson' ? 'course' : '');
     <a href="/lmln/dashboard.php" style="font-size:11.5px;color:#6f837c">ออกจากแบบทดสอบ ✕</a>
   </div>
   <h1 style="font-size:24px"><?= htmlspecialchars($titleMap[$kind]) ?></h1>
-  <div style="font-size:12.5px;color:#6f837c;margin-bottom:22px">เลือกคำตอบที่ถูกที่สุดเพียงข้อเดียว</div>
+  <div style="font-size:12.5px;color:#6f837c;margin-bottom:22px">
+    เลือกคำตอบที่ถูกที่สุดเพียงข้อเดียว<?= $revealPerQuestion ? '' : ' · ระบบจะเฉลยทุกข้อพร้อมคำอธิบายหลังทำครบทั้งชุด' ?>
+  </div>
 
   <div class="quiz-dots">
     <?php for ($i = 0; $i < $total; $i++): $cls = $i < ($q - 1) ? 'correct' : ($i === $q - 1 ? 'current' : ''); ?>

@@ -41,7 +41,7 @@ Layout::start('เข้าสู่ระบบ', null);
     </div>
     <button type="submit" class="btn btn-primary" style="width:100%">เข้าสู่ระบบ →</button>
   </form>
-  <div class="auth-switch">บัญชีผู้สอนตัวอย่าง: teacher@linuxquest.local</div>
+  <div class="auth-switch">ผู้สอน/ผู้ดูแลระบบ: เข้าสู่ระบบด้วยอีเมลที่ตั้งไว้ตอนติดตั้ง</div>
 </div>
 <?php
 Layout::end();
