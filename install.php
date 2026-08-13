@@ -15,9 +15,11 @@ declare(strict_types=1);
  *   4. รัน database/schema.sql
  *   5. เขียน config/db.local.php
  *   6. รัน database/seed.php (ใส่เนื้อหาบทเรียน/ข้อสอบ/เกม + บัญชีผู้สอน)
- *   7. เขียน config/installed.lock
+ *   7. เขียน config/installed.lock + config/install_key.php
  *
- * ติดตั้งเสร็จแล้วควรลบไฟล์นี้ทิ้ง หรือย้ายออกจาก document root
+ * สิทธิ์การเข้าถึง (ดูบล็อก guard ด้านล่าง): เปิดจาก localhost ได้เสมอ,
+ * เปิดจากที่ไหนก็ได้ถ้ายังไม่เคยติดตั้ง, หลังติดตั้งแล้วต้องล็อกอินเป็นผู้สอน
+ * หรือมีกุญแจติดตั้ง · ใช้งานจริงควรลบไฟล์นี้ทิ้งหรือตั้ง LQ_DISABLE_INSTALLER=1
  */
 
 // ตัวติดตั้งไม่ได้โหลด config.php ตอนแสดงฟอร์ม จึงหา base path ของตัวเองแยก
@@ -30,17 +32,9 @@ if ($BASE === '.' || $BASE === '/') {
 const ROOT = __DIR__;
 const LOCK_FILE = ROOT . '/config/installed.lock';
 const DB_CONFIG_FILE = ROOT . '/config/db.local.php';
+const KEY_FILE = ROOT . '/config/install_key.php';
 const SCHEMA_FILE = ROOT . '/database/schema.sql';
 const SEED_FILE = ROOT . '/database/seed.php';
-
-// ---------------------------------------------------------------- guard
-// ยอมให้ติดตั้งจากเครื่องเดียวกันเท่านั้น (XAMPP บนเครื่อง dev)
-$remote = $_SERVER['REMOTE_ADDR'] ?? '';
-$isLocal = in_array($remote, ['127.0.0.1', '::1', 'localhost', ''], true);
-if (!$isLocal) {
-    http_response_code(403);
-    exit('ตัวติดตั้งเปิดใช้ได้จากเครื่องเซิร์ฟเวอร์เท่านั้น (localhost)');
-}
 
 $lockInfo = is_file(LOCK_FILE) ? json_decode((string)file_get_contents(LOCK_FILE), true) : null;
 $isReinstall = is_array($lockInfo);
@@ -55,6 +49,89 @@ function savedDbConfig(): array
     }
     $cfg = require DB_CONFIG_FILE;
     return is_array($cfg) ? $cfg : [];
+}
+
+/** กุญแจติดตั้งที่ใช้ยืนยันตัวตนจากเครื่องอื่น (env มาก่อนไฟล์) */
+function installKey(): ?string
+{
+    $env = getenv('LQ_INSTALL_KEY');
+    if (is_string($env) && $env !== '') {
+        return $env;
+    }
+    if (is_file(KEY_FILE)) {
+        $key = require KEY_FILE;
+        return is_string($key) && $key !== '' ? $key : null;
+    }
+    return null;
+}
+
+/** ระบบติดตั้งไปแล้วหรือยัง — ดูทั้งไฟล์ล็อกและตารางจริงในฐานข้อมูล */
+function alreadyInstalled(array $saved): bool
+{
+    if (is_file(LOCK_FILE)) {
+        return true;
+    }
+    $pdo = connectSaved($saved);
+    if (!$pdo) {
+        return false;
+    }
+    try {
+        return (int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()')->fetchColumn() > 0;
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+/** ต่อฐานข้อมูลด้วยค่าที่เคยบันทึกไว้ (ไม่แตะค่าคงที่ DB_* เพราะฟอร์มอาจเปลี่ยนค่าใหม่) */
+function connectSaved(array $saved): ?PDO
+{
+    if (!$saved) {
+        return null;
+    }
+    try {
+        return new PDO(
+            sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $saved['host'] ?? '', $saved['port'] ?? '3306', $saved['name'] ?? ''),
+            (string)($saved['user'] ?? ''),
+            (string)($saved['pass'] ?? ''),
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
+        );
+    } catch (Throwable $e) {
+        return null;
+    }
+}
+
+/** ผู้ที่ล็อกอินอยู่เป็นผู้สอนหรือไม่ — ใช้ session เดียวกับตัวเว็บ (cookie path = BASE) */
+function loggedInTeacher(array $saved, string $base): bool
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_set_cookie_params(['lifetime' => 0, 'path' => $base . '/', 'httponly' => true, 'samesite' => 'Lax']);
+        @session_start();
+    }
+    if (empty($_SESSION['user_id'])) {
+        return false;
+    }
+    $pdo = connectSaved($saved);
+    if (!$pdo) {
+        return false;
+    }
+    try {
+        $stmt = $pdo->prepare('SELECT role FROM users WHERE id = ?');
+        $stmt->execute([$_SESSION['user_id']]);
+        return $stmt->fetchColumn() === 'teacher';
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+function writeInstallKey(): string
+{
+    $key = bin2hex(random_bytes(16));
+    @file_put_contents(
+        KEY_FILE,
+        "<?php\n// กุญแจสำหรับเรียก install.php จากเครื่องอื่น สร้างเมื่อ " . date('Y-m-d H:i:s') . "\n"
+        . "// ลบไฟล์นี้ทิ้งได้ถ้าไม่ต้องการให้ติดตั้งซ้ำจากระยะไกล\ndeclare(strict_types=1);\n\nreturn '" . $key . "';\n"
+    );
+    return $key;
 }
 
 /** ตัดคอมเมนต์ -- ออก แล้วแยก statement ตาม ; (schema.sql ไม่มี DELIMITER/procedure) */
@@ -114,6 +191,75 @@ function writeDbConfig(array $cfg): void
     if (file_put_contents(DB_CONFIG_FILE, $php) === false) {
         throw new RuntimeException('เขียนไฟล์ config/db.local.php ไม่สำเร็จ');
     }
+}
+
+// ---------------------------------------------------------------- guard
+// ตัวติดตั้งลบฐานข้อมูลทั้งชุดได้ จึงต้องผ่านอย่างน้อยหนึ่งเงื่อนไขก่อน:
+//   1. เรียกจากเครื่องเซิร์ฟเวอร์เอง (localhost)
+//   2. ยังไม่เคยติดตั้ง — เปิดให้ติดตั้งครั้งแรกจากที่ไหนก็ได้ (ติดตั้งเสร็จจะปิดทันที)
+//   3. ล็อกอินเป็นผู้สอนอยู่แล้ว
+//   4. กรอกกุญแจติดตั้งตรงกับ config/install_key.php หรือ env LQ_INSTALL_KEY
+// ปิดตายทั้งหมดได้ด้วย env LQ_DISABLE_INSTALLER=1
+$savedForGuard = savedDbConfig();
+$remote = $_SERVER['REMOTE_ADDR'] ?? '';
+$isLocal = in_array($remote, ['127.0.0.1', '::1', 'localhost', ''], true);
+
+if (getenv('LQ_DISABLE_INSTALLER') === '1') {
+    http_response_code(403);
+    exit('ตัวติดตั้งถูกปิดไว้ (LQ_DISABLE_INSTALLER=1)');
+}
+
+$installedBefore = alreadyInstalled($savedForGuard);
+$key = installKey();
+$givenKey = (string)($_POST['install_key'] ?? $_GET['key'] ?? '');
+$keyOk = $key !== null && $givenKey !== '' && hash_equals($key, $givenKey);
+$teacherOk = $installedBefore && loggedInTeacher($savedForGuard, $BASE);
+
+$authorized = $isLocal || !$installedBefore || $keyOk || $teacherOk;
+$badKey = !$authorized && $givenKey !== '';
+
+if (!$authorized) {
+    // ยังไม่ผ่าน — แสดงหน้าขอกุญแจ ไม่แตะฐานข้อมูลใด ๆ
+    http_response_code(403);
+    ?>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ยืนยันสิทธิ์ติดตั้ง · LinuxQuest LMS</title>
+<link rel="stylesheet" href="<?= $BASE ?>/public/css/style.css">
+</head>
+<body>
+<div class="app-shell"><main class="app-main auth-main">
+  <div class="auth-card">
+    <div class="eyebrow">LINUXQUEST · INSTALLER</div>
+    <h1>ยืนยันสิทธิ์ก่อนติดตั้ง</h1>
+    <p class="lead">ระบบนี้ติดตั้งไว้แล้ว การเรียกตัวติดตั้งจากเครื่องอื่นจึงต้องยืนยันตัวตนก่อน เพราะการติดตั้งซ้ำจะลบข้อมูลทั้งหมด</p>
+    <?php if ($badKey): ?><div class="alert alert-error">กุญแจติดตั้งไม่ถูกต้อง</div><?php endif; ?>
+    <?php if ($key === null): ?>
+      <div class="alert alert-error" style="line-height:1.9">
+        ยังไม่มีกุญแจติดตั้งในระบบ · เลือกทำอย่างใดอย่างหนึ่ง:<br>
+        · <a href="<?= $BASE ?>/login.php" style="text-decoration:underline">เข้าสู่ระบบด้วยบัญชีผู้สอน</a> แล้วเปิดหน้านี้ใหม่<br>
+        · สร้างไฟล์ <code>config/install_key.php</code> ที่มีเนื้อหา <code>&lt;?php return 'รหัสลับของคุณ';</code><br>
+        · หรือตั้ง environment variable <code>LQ_INSTALL_KEY</code>
+      </div>
+    <?php else: ?>
+      <form method="get" action="<?= $BASE ?>/install.php">
+        <div class="field">
+          <label for="key">กุญแจติดตั้ง</label>
+          <input type="password" id="key" name="key" required autocomplete="off" placeholder="ค่าจาก config/install_key.php">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">ยืนยัน →</button>
+      </form>
+    <?php endif; ?>
+    <div class="auth-switch"><a href="<?= $BASE ?>/">← กลับหน้าแรก</a></div>
+  </div>
+</main></div>
+</body>
+</html>
+    <?php
+    exit;
 }
 
 // ---------------------------------------------------------------- env checks
@@ -250,7 +396,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // บรรทัดบัญชีตัวอย่างของ seed ใช้ไม่ได้แล้ว (ถูกลบไปในขั้นที่ 7) จึงไม่แสดง
         $seedOut = trim(preg_replace('/^.*teacher account.*$\R?/mi', '', $seedOut) ?? $seedOut);
 
-        $done = ['log' => $log, 'seed' => $seedOut, 'admin' => $admin['email']];
+        // 10) กุญแจสำหรับเรียกตัวติดตั้งจากเครื่องอื่นในครั้งถัดไป (ถ้ายังไม่มี)
+        $newKey = installKey() === null ? writeInstallKey() : null;
+
+        $done = ['log' => $log, 'seed' => $seedOut, 'admin' => $admin['email'], 'key' => $newKey];
     } catch (Throwable $e) {
         $errors[] = $e->getMessage();
         if ($log) {
@@ -259,20 +408,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$hasTablesNow = false;
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $saved) {
-    try {
-        $probe = new PDO(
-            sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $saved['host'] ?? '', $saved['port'] ?? '3306', $saved['name'] ?? ''),
-            (string)($saved['user'] ?? ''),
-            (string)($saved['pass'] ?? ''),
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-        );
-        $hasTablesNow = (int)$probe->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()')->fetchColumn() > 0;
-    } catch (Throwable $e) {
-        $hasTablesNow = false;
-    }
-}
+// เตือนเรื่องติดตั้งซ้ำ ใช้ผลตรวจชุดเดียวกับที่ guard ด้านบนใช้แล้ว
+$hasTablesNow = $_SERVER['REQUEST_METHOD'] !== 'POST' && $installedBefore;
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -320,8 +457,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $saved) {
     <div style="margin-top:18px;padding:14px 16px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);font-size:12.5px;color:#b9cbc4">
       เข้าสู่ระบบด้วยบัญชีผู้ดูแลระบบ: <code style="color:var(--green)"><?= htmlspecialchars($done['admin']) ?></code> พร้อมรหัสผ่านที่เพิ่งตั้งไว้
     </div>
-    <div class="alert alert-error" style="margin-top:14px;padding:14px 16px;border-radius:10px;border:1px solid rgba(248,113,113,.3);background:rgba(248,113,113,.07);color:#fca5a5;font-size:12.5px">
-      เพื่อความปลอดภัย ให้ลบไฟล์ <code>install.php</code> ทิ้งหลังติดตั้งเสร็จ
+    <?php if (!empty($done['key'])): ?>
+      <div style="margin-top:14px;padding:14px 16px;border-radius:10px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.06);font-size:12.5px;color:#fcd34d;line-height:1.9">
+        กุญแจติดตั้ง (แสดงครั้งเดียว — เก็บไว้ให้ดี):
+        <div style="font-family:var(--mono);font-size:14px;color:#fde68a;margin:6px 0;word-break:break-all"><?= htmlspecialchars($done['key']) ?></div>
+        ต้องใช้เมื่อจะเรียก <code>install.php</code> จากเครื่องอื่นอีกครั้ง (หรือเข้าสู่ระบบด้วยบัญชีผู้สอนก็ได้) ·
+        เก็บอยู่ในไฟล์ <code>config/install_key.php</code> ลบไฟล์นั้นทิ้งได้ถ้าไม่ต้องการให้ติดตั้งซ้ำจากระยะไกล
+      </div>
+    <?php endif; ?>
+    <div class="alert alert-error" style="margin-top:14px;padding:14px 16px;border-radius:10px;border:1px solid rgba(248,113,113,.3);background:rgba(248,113,113,.07);color:#fca5a5;font-size:12.5px;line-height:1.9">
+      เพื่อความปลอดภัย เมื่อใช้งานจริงบนอินเทอร์เน็ตควรลบไฟล์ <code>install.php</code> ทิ้งหลังติดตั้งเสร็จ
+      หรือปิดถาวรด้วย environment variable <code>LQ_DISABLE_INSTALLER=1</code>
     </div>
     <div style="display:flex;gap:11px;margin-top:22px">
       <a class="btn btn-primary" href="<?= $BASE ?>/login.php">ไปหน้าเข้าสู่ระบบ →</a>
@@ -353,6 +499,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $saved) {
     </div>
 
     <form method="post" action="<?= $BASE ?>/install.php" class="card" style="padding:20px 22px">
+      <?php // ส่งกุญแจต่อไปกับ POST ด้วย ไม่งั้นการยืนยันสิทธิ์จะหลุดตอนกดติดตั้ง ?>
+      <input type="hidden" name="install_key" value="<?= htmlspecialchars($givenKey) ?>">
       <div style="font-size:13px;font-weight:600;color:#e3efe9;margin-bottom:3px">การเชื่อมต่อฐานข้อมูล</div>
       <div style="font-size:11.5px;color:#5f736c;margin-bottom:16px">ค่าเริ่มต้นของ XAMPP คือ root โดยไม่มีรหัสผ่าน</div>
 

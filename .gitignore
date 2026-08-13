@@ -1,3 +1,4 @@
 # เขียนโดย install.php — เก็บรหัสผ่านฐานข้อมูลของแต่ละเครื่อง
 config/db.local.php
 config/installed.lock
+config/install_key.php
