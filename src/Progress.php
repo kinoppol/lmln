@@ -165,14 +165,14 @@ final class Progress
         if (!self::pretestDone($userId, $courseId)) {
             $missing[] = [
                 'text' => 'ทำแบบทดสอบก่อนเรียนให้เสร็จก่อน',
-                'href' => '/lmln/quiz.php?kind=pretest',
+                'href' => url('/quiz.php?kind=pretest'),
                 'cta' => 'ไปทำแบบทดสอบก่อนเรียน',
             ];
         }
         if (self::doneCount($userId) < 1) {
             $missing[] = [
                 'text' => 'เรียนและผ่านบทเรียนอย่างน้อย 1 บท',
-                'href' => '/lmln/course.php',
+                'href' => url('/course.php'),
                 'cta' => 'ไปหน้าบทเรียน',
             ];
         }

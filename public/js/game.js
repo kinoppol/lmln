@@ -5,7 +5,7 @@
   const d = T.d, f = T.f, C = T.COLORS;
 
   function saveScore(score, timeTakenSec, xp) {
-    return fetch('/lmln/api/save_game_score.php', {
+    return fetch(cfg.base + '/api/save_game_score.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code: cfg.code, score, time_taken_sec: timeTakenSec, xp, csrf_token: cfg.csrf }),

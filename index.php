@@ -4,7 +4,7 @@ require __DIR__ . '/bootstrap.php';
 
 // ล็อกอินอยู่แล้วให้เข้าหน้าเรียนต่อได้เลย ไม่ต้องอ่านหน้าแนะนำซ้ำ
 if (Auth::currentUser()) {
-    header('Location: /lmln/dashboard.php');
+    header('Location: ' . url('/dashboard.php'));
     exit;
 }
 
@@ -51,13 +51,13 @@ Layout::start('เรียน Linux ผ่าน Terminal จำลอง', nul
       </div>
     </div>
     <div class="spacer"></div>
-    <a class="btn btn-ghost btn-sm" href="/lmln/login.php">เข้าสู่ระบบ</a>
-    <a class="btn btn-primary btn-sm" href="/lmln/register.php">สมัครสมาชิก</a>
+    <a class="btn btn-ghost btn-sm" href="<?= BASE_URL ?>/login.php">เข้าสู่ระบบ</a>
+    <a class="btn btn-primary btn-sm" href="<?= BASE_URL ?>/register.php">สมัครสมาชิก</a>
   </header>
 
   <?php if (!$stats['installed']): ?>
     <div class="gate-note" style="margin-top:24px">
-      ยังไม่ได้ติดตั้งฐานข้อมูล — เปิด <a href="/lmln/install.php" style="color:var(--amber);text-decoration:underline">install.php</a> เพื่อติดตั้งระบบก่อนใช้งาน
+      ยังไม่ได้ติดตั้งฐานข้อมูล — เปิด <a href="<?= BASE_URL ?>/install.php" style="color:var(--amber);text-decoration:underline">install.php</a> เพื่อติดตั้งระบบก่อนใช้งาน
     </div>
   <?php endif; ?>
 
@@ -70,8 +70,8 @@ Layout::start('เรียน Linux ผ่าน Terminal จำลอง', nul
         ทดสอบความเข้าใจท้ายบท แล้วเอาคำสั่งที่เรียนไปใช้จริงในเกมกู้ระบบ เนื้อหาภาษาไทยทั้งหมด
       </p>
       <div class="landing-cta">
-        <a class="btn btn-primary" href="/lmln/register.php">สมัครสมาชิกเพื่อเริ่มเรียน →</a>
-        <a class="btn btn-outline" href="/lmln/login.php">มีบัญชีแล้ว · เข้าสู่ระบบ</a>
+        <a class="btn btn-primary" href="<?= BASE_URL ?>/register.php">สมัครสมาชิกเพื่อเริ่มเรียน →</a>
+        <a class="btn btn-outline" href="<?= BASE_URL ?>/login.php">มีบัญชีแล้ว · เข้าสู่ระบบ</a>
       </div>
       <div class="landing-stats">
         <div><span class="num"><?= $stats['lessons'] ?></span><span class="lbl">บทเรียน</span></div>
@@ -134,8 +134,8 @@ Layout::start('เรียน Linux ผ่าน Terminal จำลอง', nul
     <h2 class="landing-h2" style="margin-bottom:8px">พร้อมเริ่มบทแรกแล้วหรือยัง</h2>
     <p class="landing-sub" style="margin-bottom:22px">สมัครฟรี ใช้เวลาไม่ถึงหนึ่งนาที แล้วเริ่มพิมพ์คำสั่งแรกได้ทันที</p>
     <div class="landing-cta" style="justify-content:center">
-      <a class="btn btn-primary" href="/lmln/register.php">สมัครสมาชิก →</a>
-      <a class="btn btn-ghost" href="/lmln/login.php">เข้าสู่ระบบ</a>
+      <a class="btn btn-primary" href="<?= BASE_URL ?>/register.php">สมัครสมาชิก →</a>
+      <a class="btn btn-ghost" href="<?= BASE_URL ?>/login.php">เข้าสู่ระบบ</a>
     </div>
   </section>
 

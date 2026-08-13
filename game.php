@@ -10,7 +10,7 @@ $stmt = $db->prepare('SELECT * FROM games WHERE code = ?');
 $stmt->execute([$code]);
 $game = $stmt->fetch();
 if (!$game) {
-    header('Location: /lmln/games.php');
+    header('Location: ' . url('/games.php'));
     exit;
 }
 
@@ -18,7 +18,7 @@ if (!$game) {
 // (games.php เป็นที่เดียวที่อธิบายว่ายังขาดอะไร จึงเด้งกลับไปที่นั่น)
 $userId = (int)$user['id'];
 if (!Progress::arcadeGate($userId)['unlocked'] || !Progress::gameGate($userId, $game)['unlocked']) {
-    header('Location: /lmln/games.php?locked=' . urlencode($code));
+    header('Location: ' . url('/games.php?locked=') . urlencode($code));
     exit;
 }
 
@@ -32,7 +32,7 @@ Layout::start($game['title_th'], $user, 'games');
 ?>
 <div style="display:flex;flex-direction:column;height:calc(100vh - 62px);min-height:0">
   <div class="game-header">
-    <a href="/lmln/games.php" style="font-size:11.5px;color:#6f837c">← ออกจากเกม</a>
+    <a href="<?= BASE_URL ?>/games.php" style="font-size:11.5px;color:#6f837c">← ออกจากเกม</a>
     <div style="font-size:14.5px;font-weight:700;color:#eaf6f0"><?= htmlspecialchars($game['title_th']) ?></div>
     <div style="font-family:var(--mono);font-size:11.5px;color:#5f736c"><?= htmlspecialchars($game['title_en']) ?></div>
     <div class="spacer"></div>
@@ -58,8 +58,8 @@ Layout::start($game['title_th'], $user, 'games');
         <div style="font-size:13px;color:#6f837c;margin-bottom:10px" id="drillFinalCorrect"></div>
         <div style="font-size:19px;font-weight:700;color:#eaf6f0;margin-bottom:22px" id="drillFinalMsg"></div>
         <div style="display:flex;gap:11px;justify-content:center">
-          <a class="btn btn-primary" href="/lmln/game.php?code=drill">เล่นอีกครั้ง</a>
-          <a class="btn btn-ghost" href="/lmln/games.php">กลับโซนเกม</a>
+          <a class="btn btn-primary" href="<?= BASE_URL ?>/game.php?code=drill">เล่นอีกครั้ง</a>
+          <a class="btn btn-ghost" href="<?= BASE_URL ?>/games.php">กลับโซนเกม</a>
         </div>
       </div>
     </div>
@@ -80,7 +80,7 @@ Layout::start($game['title_th'], $user, 'games');
         <div id="winBox" class="win-box" style="display:none">
           <div style="font-size:14px;font-weight:700;color:#86efac;margin-bottom:5px">🏆 ภารกิจสำเร็จ!</div>
           <div style="font-size:12.5px;line-height:1.6;color:#a9d9bb" id="winMsg"></div>
-          <a href="/lmln/games.php" style="margin-top:11px;display:block;text-align:center;padding:9px;border-radius:8px;background:var(--green);color:#04150b;font-size:12.5px;font-weight:700">กลับโซนเกม</a>
+          <a href="<?= BASE_URL ?>/games.php" style="margin-top:11px;display:block;text-align:center;padding:9px;border-radius:8px;background:var(--green);color:#04150b;font-size:12.5px;font-weight:700">กลับโซนเกม</a>
         </div>
       </div>
       <div class="game-term" id="gameTermWrap">
@@ -95,15 +95,16 @@ Layout::start($game['title_th'], $user, 'games');
   <?php endif; ?>
 </div>
 
-<script src="/lmln/public/js/terminal-engine.js"></script>
+<script src="<?= BASE_URL ?>/public/js/terminal-engine.js"></script>
 <script>
 window.LQ_GAME = {
+  base: <?= json_encode(BASE_URL) ?>,
   code: <?= json_encode($code) ?>,
   timeLimitSec: <?= (int)$game['time_limit_sec'] ?>,
   drills: <?= json_encode($drills, JSON_UNESCAPED_UNICODE) ?>,
   csrf: <?= json_encode(Csrf::token()) ?>
 };
 </script>
-<script src="/lmln/public/js/game.js"></script>
+<script src="<?= BASE_URL ?>/public/js/game.js"></script>
 <?php
 Layout::end();

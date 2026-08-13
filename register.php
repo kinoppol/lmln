@@ -3,7 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/bootstrap.php';
 
 if (Auth::currentUser()) {
-    header('Location: /lmln/dashboard.php');
+    header('Location: ' . url('/dashboard.php'));
     exit;
 }
 
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         if ($ok) {
             Auth::attempt($old['email'], $password);
-            header('Location: /lmln/dashboard.php');
+            header('Location: ' . url('/dashboard.php'));
             exit;
         }
         $error = $result;
@@ -48,9 +48,9 @@ Layout::start('สมัครสมาชิก', null);
 <div class="auth-card">
   <div class="eyebrow">LINUXQUEST · LMS</div>
   <h1>สมัครสมาชิก</h1>
-  <p class="lead">มีบัญชีอยู่แล้ว? <a href="/lmln/login.php">เข้าสู่ระบบ</a></p>
+  <p class="lead">มีบัญชีอยู่แล้ว? <a href="<?= BASE_URL ?>/login.php">เข้าสู่ระบบ</a></p>
   <?php if ($error): ?><div class="alert alert-error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
-  <form method="post" action="/lmln/register.php" id="regForm">
+  <form method="post" action="<?= BASE_URL ?>/register.php" id="regForm">
     <?= Csrf::field() ?>
 
     <div class="field">

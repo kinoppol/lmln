@@ -109,7 +109,7 @@
   treeToggle.addEventListener('click', () => { treeOpen = !treeOpen; treeCaret.textContent = treeOpen ? '▾' : '▸'; renderTree(); });
 
   function postProgress() {
-    fetch('/lmln/api/submit_task.php', {
+    fetch(cfg.base + '/api/submit_task.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ lesson_id: cfg.lessonId, history: term.history, vfs: term.vfs, csrf_token: cfg.csrf }),

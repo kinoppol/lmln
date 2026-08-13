@@ -9,7 +9,7 @@ $db = Database::get();
 $attemptId = (int)($_GET['attempt'] ?? 0);
 $attempt = QuizGrader::attempt($attemptId, $userId);
 if (!$attempt || !$attempt['completed_at']) {
-    header('Location: /lmln/dashboard.php');
+    header('Location: ' . url('/dashboard.php'));
     exit;
 }
 $quiz = QuizGrader::quiz((int)$attempt['quiz_id']);
@@ -25,7 +25,7 @@ $scoreColor = $pct >= 80 ? 'var(--green)' : ($pct >= 50 ? 'var(--amber)' : 'var(
 $headline = 'บันทึกคะแนนแล้ว';
 $advice = '';
 $primaryLabel = 'กลับหน้าแรก';
-$primaryHref = '/lmln/dashboard.php';
+$primaryHref = url('/dashboard.php');
 
 if ($kind === 'pretest') {
     $headline = 'บันทึกคะแนนก่อนเรียนแล้ว';
@@ -33,12 +33,12 @@ if ($kind === 'pretest') {
     $primaryLabel = 'เริ่มเรียนบทที่ 1 →';
     $stmt = $db->prepare('SELECT id FROM lessons WHERE course_id=1 AND position=1');
     $stmt->execute();
-    $primaryHref = '/lmln/lesson.php?id=' . $stmt->fetchColumn();
+    $primaryHref = url('/lesson.php?id=') . $stmt->fetchColumn();
 } elseif ($kind === 'posttest') {
     $headline = $passed ? ($score >= 8 ? 'ยอดเยี่ยม! ผ่านเกณฑ์สบาย ๆ' : 'ผ่านเกณฑ์แล้ว') : ('ยังไม่ผ่านเกณฑ์ ' . (int)$quiz['pass_threshold_pct'] . '%');
     $advice = $passed ? 'คุณผ่านเกณฑ์แล้ว หากเรียนครบทั้ง 9 บทจะปลดล็อกใบประกาศนียบัตรทันที' : 'ลองกลับไปทบทวนบทที่ทำผิด แล้วฝึกในเกมอีกสักรอบก่อนทำใหม่';
     $primaryLabel = 'ดูใบประกาศนียบัตร';
-    $primaryHref = '/lmln/certificate.php';
+    $primaryHref = url('/certificate.php');
 } elseif ($kind === 'lesson') {
     $lessonId = (int)$quiz['lesson_id'];
     if ($passed) {
@@ -46,16 +46,16 @@ if ($kind === 'pretest') {
         $headline = $completed ? 'ผ่านบทเรียนนี้แล้ว! ปลดล็อกบทถัดไปแล้ว' : 'ผ่านแบบทดสอบแล้ว';
         $advice = $completed ? 'เก็บ XP บทเรียนแล้ว ไปต่อกันเลย' : 'กลับไปทำภารกิจใน Terminal ให้ครบก่อน ระบบจะปลดล็อกบทถัดไปให้อัตโนมัติ';
         $primaryLabel = 'ไปหน้าบทเรียนทั้งหมด →';
-        $primaryHref = '/lmln/course.php';
+        $primaryHref = url('/course.php');
     } else {
         $headline = 'ยังไม่ผ่านเกณฑ์ ลองใหม่อีกครั้ง';
         $advice = 'ทบทวนเนื้อหาบทนี้อีกรอบแล้วกลับมาทำแบบทดสอบใหม่';
         $primaryLabel = 'กลับไปทบทวนบทเรียน';
-        $primaryHref = '/lmln/lesson.php?id=' . $lessonId;
+        $primaryHref = url('/lesson.php?id=') . $lessonId;
     }
 }
 
-$retakeHref = $kind === 'lesson' ? '/lmln/quiz.php?kind=lesson&lesson_id=' . (int)$quiz['lesson_id'] : '/lmln/quiz.php?kind=' . $kind;
+$retakeHref = $kind === 'lesson' ? url('/quiz.php?kind=lesson&lesson_id=') . (int)$quiz['lesson_id'] : url('/quiz.php?kind=') . $kind;
 
 Layout::start('ผลคะแนน', $user);
 ?>

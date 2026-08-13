@@ -62,7 +62,7 @@ Layout::start('โซนเกมฝึกทักษะ', $user, 'games');
         $justBlocked = $blockedCode !== '' && $blockedCode === $g['code'];
     ?>
       <?php if ($open): ?>
-        <a class="game-card" href="/lmln/game.php?code=<?= urlencode($g['code']) ?>">
+        <a class="game-card" href="<?= BASE_URL ?>/game.php?code=<?= urlencode($g['code']) ?>">
       <?php else: ?>
         <div class="game-card locked <?= $justBlocked ? 'blocked' : '' ?>">
       <?php endif; ?>
@@ -93,7 +93,7 @@ Layout::start('โซนเกมฝึกทักษะ', $user, 'games');
           </div>
           <div class="game-footer">
             <span style="font-size:11.5px;color:#5f736c;font-family:var(--mono)">ยังเหลืออีก <?= count($gate['missing']) ?> บท</span>
-            <a style="font-size:12.5px;font-weight:700;color:var(--amber)" href="<?= $gate['missing'] ? '/lmln/lesson.php?id=' . (int)$gate['missing'][0]['id'] : '/lmln/course.php' ?>">ไปเรียนต่อ →</a>
+            <a style="font-size:12.5px;font-weight:700;color:var(--amber)" href="<?= $gate['missing'] ? url('/lesson.php?id=') . (int)$gate['missing'][0]['id'] : url('/course.php') ?>">ไปเรียนต่อ →</a>
           </div>
         <?php else: ?>
           <div class="game-footer">

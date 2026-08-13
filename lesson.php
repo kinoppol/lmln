@@ -12,11 +12,11 @@ $stmt->execute([$lessonId]);
 $lesson = $stmt->fetch();
 
 if (!$lesson) {
-    header('Location: /lmln/course.php');
+    header('Location: ' . url('/course.php'));
     exit;
 }
 if (!Progress::canAccessLesson($userId, $lessonId)) {
-    header('Location: /lmln/course.php?locked=1');
+    header('Location: ' . url('/course.php?locked=1'));
     exit;
 }
 
@@ -47,7 +47,7 @@ Layout::start($lesson['title_th'], $user, 'course');
 ?>
 <div class="lesson-layout">
   <div class="lesson-left">
-    <a class="back-link" href="/lmln/course.php">← กลับไปหน้าบทเรียนทั้งหมด</a>
+    <a class="back-link" href="<?= BASE_URL ?>/course.php">← กลับไปหน้าบทเรียนทั้งหมด</a>
     <div class="lesson-tag">LESSON <?= (int)$lesson['position'] ?> / <?= LESSON_COUNT ?></div>
     <h1><?= htmlspecialchars($lesson['title_th']) ?></h1>
     <div class="lesson-en"><?= htmlspecialchars($lesson['title_en']) ?></div>
@@ -69,11 +69,11 @@ Layout::start($lesson['title_th'], $user, 'course');
     </div>
 
     <div class="lesson-actions">
-      <?php if ($prevId): ?><a class="btn btn-ghost" href="/lmln/lesson.php?id=<?= (int)$prevId ?>">← บทก่อนหน้า</a><?php endif; ?>
+      <?php if ($prevId): ?><a class="btn btn-ghost" href="<?= BASE_URL ?>/lesson.php?id=<?= (int)$prevId ?>">← บทก่อนหน้า</a><?php endif; ?>
       <?php if ($isCompleted): ?>
-        <a class="btn btn-primary" href="/lmln/course.php">ผ่านบทนี้แล้ว — กลับไปหน้าบทเรียน →</a>
+        <a class="btn btn-primary" href="<?= BASE_URL ?>/course.php">ผ่านบทนี้แล้ว — กลับไปหน้าบทเรียน →</a>
       <?php else: ?>
-        <a class="btn btn-primary" id="quizLink" href="/lmln/quiz.php?kind=lesson&lesson_id=<?= $lessonId ?>" style="<?= count($doneTaskIds) >= count($tasks) ? '' : 'pointer-events:none;opacity:.4' ?>">ทำแบบทดสอบท้ายบทเพื่อปลดล็อกบทถัดไป →</a>
+        <a class="btn btn-primary" id="quizLink" href="<?= BASE_URL ?>/quiz.php?kind=lesson&lesson_id=<?= $lessonId ?>" style="<?= count($doneTaskIds) >= count($tasks) ? '' : 'pointer-events:none;opacity:.4' ?>">ทำแบบทดสอบท้ายบทเพื่อปลดล็อกบทถัดไป →</a>
       <?php endif; ?>
     </div>
   </div>
@@ -110,9 +110,10 @@ Layout::start($lesson['title_th'], $user, 'course');
   </div>
 </div>
 
-<script src="/lmln/public/js/terminal-engine.js"></script>
+<script src="<?= BASE_URL ?>/public/js/terminal-engine.js"></script>
 <script>
 window.LQ_LESSON = {
+  base: <?= json_encode(BASE_URL) ?>,
   lessonId: <?= json_encode($lessonId) ?>,
   vfsSeed: <?= $lesson['vfs_seed'] ?>,
   hints: <?= json_encode($hints, JSON_UNESCAPED_UNICODE) ?>,
@@ -120,6 +121,6 @@ window.LQ_LESSON = {
   tasksTotal: <?= count($tasks) ?>
 };
 </script>
-<script src="/lmln/public/js/lesson.js"></script>
+<script src="<?= BASE_URL ?>/public/js/lesson.js"></script>
 <?php
 Layout::end();

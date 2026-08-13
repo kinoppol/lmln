@@ -18,7 +18,7 @@ final class Auth
     {
         $user = self::currentUser();
         if (!$user) {
-            header('Location: /lmln/login.php');
+            header('Location: ' . url('/login.php'));
             exit;
         }
         return $user;

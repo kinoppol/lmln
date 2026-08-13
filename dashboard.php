@@ -32,8 +32,8 @@ Layout::start('หน้าแรก', $user, 'home');
         <h1>คำสั่งพื้นฐาน Linux<br><span style="font-family:var(--mono);font-size:22px;color:var(--green);font-weight:500">Basic Linux Commands</span></h1>
         <p>เรียนคำสั่งที่ใช้จริงในการทำงานผ่าน Terminal จำลองในเบราว์เซอร์ — พิมพ์เอง เห็นผลทันที ไม่ต้องติดตั้งอะไร แล้วปิดท้ายด้วยเกมล่าไวรัสและภารกิจกู้ระบบ</p>
         <div class="hero-cta">
-          <a class="btn btn-primary" href="<?= $doneCount ? '/lmln/course.php' : '/lmln/quiz.php?kind=pretest' ?>"><?= $doneCount ? 'เรียนต่อ' : 'เริ่มด้วยแบบทดสอบก่อนเรียน' ?> →</a>
-          <a class="btn btn-outline" href="/lmln/games.php">เข้าโซนเกม</a>
+          <a class="btn btn-primary" href="<?= $doneCount ? url('/course.php') : url('/quiz.php?kind=pretest') ?>"><?= $doneCount ? 'เรียนต่อ' : 'เริ่มด้วยแบบทดสอบก่อนเรียน' ?> →</a>
+          <a class="btn btn-outline" href="<?= BASE_URL ?>/games.php">เข้าโซนเกม</a>
         </div>
       </div>
       <div class="term-preview">
@@ -63,27 +63,27 @@ Layout::start('หน้าแรก', $user, 'home');
   <h2 style="margin:34px 0 4px;font-size:17px;font-weight:600;color:#e3efe9">เส้นทางการเรียน · Learning path</h2>
   <p style="margin:0 0 18px;font-size:12.5px;color:#6f837c">ทำแบบทดสอบก่อนเรียน → เรียน 9 บท (แต่ละบทมี Terminal ให้ฝึก + แบบทดสอบท้ายบท) → เกมฝึกทักษะ → แบบทดสอบหลังเรียน → รับใบประกาศ</p>
   <div class="path-row">
-    <a class="path-step" style="border-color:rgba(56,189,248,.2);background:rgba(56,189,248,.05)" href="/lmln/quiz.php?kind=pretest">
+    <a class="path-step" style="border-color:rgba(56,189,248,.2);background:rgba(56,189,248,.05)" href="<?= BASE_URL ?>/quiz.php?kind=pretest">
       <div class="n" style="color:var(--cyan)">STEP 1</div>
       <div class="th">แบบทดสอบก่อนเรียน</div><div class="en">Pre-test</div>
       <div class="state" style="color:var(--cyan)"><?= $pre ? 'ทำแล้ว ' . (int)$pre['score'] . '/' . (int)$pre['total'] : 'ยังไม่ได้ทำ' ?></div>
     </a>
-    <a class="path-step" style="border-color:rgba(74,222,128,.2);background:rgba(74,222,128,.05)" href="/lmln/course.php">
+    <a class="path-step" style="border-color:rgba(74,222,128,.2);background:rgba(74,222,128,.05)" href="<?= BASE_URL ?>/course.php">
       <div class="n" style="color:var(--green)">STEP 2</div>
       <div class="th">เรียน 9 บท + ฝึกใน Terminal</div><div class="en">Lessons & sandbox</div>
       <div class="state" style="color:var(--green)"><?= $doneCount ?> / <?= LESSON_COUNT ?> บท</div>
     </a>
-    <a class="path-step" style="border-color:rgba(251,191,36,.2);background:rgba(251,191,36,.05)" href="/lmln/games.php">
+    <a class="path-step" style="border-color:rgba(251,191,36,.2);background:rgba(251,191,36,.05)" href="<?= BASE_URL ?>/games.php">
       <div class="n" style="color:var(--amber)">STEP 3</div>
       <div class="th">เกมฝึกทักษะ 4 เกม</div><div class="en">Skill games</div>
       <div class="state" style="color:var(--amber)"><?= $gamesPlayed ?> / 4 เกมที่เคยเล่น</div>
     </a>
-    <a class="path-step" style="border-color:rgba(56,189,248,.2);background:rgba(56,189,248,.05)" href="/lmln/quiz.php?kind=posttest">
+    <a class="path-step" style="border-color:rgba(56,189,248,.2);background:rgba(56,189,248,.05)" href="<?= BASE_URL ?>/quiz.php?kind=posttest">
       <div class="n" style="color:var(--cyan)">STEP 4</div>
       <div class="th">แบบทดสอบหลังเรียน</div><div class="en">Post-test</div>
       <div class="state" style="color:var(--cyan)"><?= $post ? 'ทำแล้ว ' . (int)$post['score'] . '/' . (int)$post['total'] : 'ยังไม่ได้ทำ' ?></div>
     </a>
-    <a class="path-step" style="border-color:rgba(255,255,255,.08)" href="/lmln/certificate.php">
+    <a class="path-step" style="border-color:rgba(255,255,255,.08)" href="<?= BASE_URL ?>/certificate.php">
       <div class="n" style="color:<?= $certReady ? 'var(--green)' : '#6f837c' ?>">STEP 5</div>
       <div class="th">รับใบประกาศนียบัตร</div><div class="en">Certificate</div>
       <div class="state" style="color:<?= $certReady ? 'var(--green)' : '#6f837c' ?>"><?= $certReady ? 'พร้อมรับแล้ว' : 'ยังไม่ปลดล็อก' ?></div>

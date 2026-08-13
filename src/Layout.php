@@ -32,13 +32,13 @@ final class Layout
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/lmln/public/css/style.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/public/css/style.css">
 </head>
 <body>
 <div class="app-shell">
 <?php if ($user): ?>
   <header class="app-header">
-    <a class="brand" href="/lmln/dashboard.php">
+    <a class="brand" href="<?= BASE_URL ?>/dashboard.php">
       <div class="brand-mark">&gt;_</div>
       <div class="brand-text">
         <span class="brand-name">LinuxQuest</span>
@@ -70,10 +70,10 @@ final class Layout
       <?php endforeach; ?>
       <?php if ($user['role'] === 'teacher'): ?>
         <div class="nav-group-label" style="margin-top:18px">ผู้สอน · INSTRUCTOR</div>
-        <a class="nav-item <?= $active === 'teacher' ? 'active' : '' ?>" href="/lmln/teacher/dashboard.php">
+        <a class="nav-item <?= $active === 'teacher' ? 'active' : '' ?>" href="<?= BASE_URL ?>/teacher/dashboard.php">
           <span class="nav-glyph">▤</span><span class="nav-label">แดชบอร์ดผลเรียน</span>
         </a>
-        <a class="nav-item <?= $active === 'migrations' ? 'active' : '' ?>" href="/lmln/teacher/migrations.php">
+        <a class="nav-item <?= $active === 'migrations' ? 'active' : '' ?>" href="<?= BASE_URL ?>/teacher/migrations.php">
           <span class="nav-glyph">⇪</span><span class="nav-label">ปรับปรุงฐานข้อมูล</span>
           <?php if ($pendingMigrations > 0): ?><span class="nav-badge warn"><?= $pendingMigrations ?></span><?php endif; ?>
         </a>
@@ -108,7 +108,7 @@ final class Layout
         กำลังออกจากระบบในชื่อ <strong><?= htmlspecialchars($user['full_name']) ?></strong><br>
         ความคืบหน้าและคะแนนที่ทำไว้ถูกบันทึกไว้แล้ว เข้าสู่ระบบใหม่เมื่อไหร่ก็เรียนต่อจากเดิมได้
       </p>
-      <form method="post" action="/lmln/logout.php" class="modal-actions">
+      <form method="post" action="<?= BASE_URL ?>/logout.php" class="modal-actions">
         <?= Csrf::field() ?>
         <button type="button" class="btn btn-ghost" id="logoutCancel">ยกเลิก</button>
         <button type="submit" class="btn btn-danger">ออกจากระบบ</button>
@@ -163,11 +163,11 @@ final class Layout
     private static function mainNav(int $doneCount): array
     {
         return [
-            ['key' => 'home', 'glyph' => '~', 'label' => 'หน้าแรก', 'href' => '/lmln/dashboard.php'],
-            ['key' => 'course', 'glyph' => '≡', 'label' => 'บทเรียน', 'href' => '/lmln/course.php', 'badge' => $doneCount . '/' . LESSON_COUNT],
-            ['key' => 'games', 'glyph' => '▶', 'label' => 'โซนเกม', 'href' => '/lmln/games.php'],
-            ['key' => 'board', 'glyph' => '#', 'label' => 'กระดานผู้นำ', 'href' => '/lmln/leaderboard.php'],
-            ['key' => 'cert', 'glyph' => '✦', 'label' => 'ใบประกาศ', 'href' => '/lmln/certificate.php'],
+            ['key' => 'home', 'glyph' => '~', 'label' => 'หน้าแรก', 'href' => url('/dashboard.php')],
+            ['key' => 'course', 'glyph' => '≡', 'label' => 'บทเรียน', 'href' => url('/course.php'), 'badge' => $doneCount . '/' . LESSON_COUNT],
+            ['key' => 'games', 'glyph' => '▶', 'label' => 'โซนเกม', 'href' => url('/games.php')],
+            ['key' => 'board', 'glyph' => '#', 'label' => 'กระดานผู้นำ', 'href' => url('/leaderboard.php')],
+            ['key' => 'cert', 'glyph' => '✦', 'label' => 'ใบประกาศ', 'href' => url('/certificate.php')],
         ];
     }
 }

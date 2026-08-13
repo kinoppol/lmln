@@ -25,12 +25,12 @@ Layout::start('บทเรียนทั้งหมด', $user, 'course');
   <p class="lead">แต่ละบทมีเนื้อหา ตัวอย่างคำสั่ง และภารกิจใน Terminal จำลอง พร้อมแบบทดสอบท้ายบทที่ต้องผ่านจึงจะปลดล็อกบทถัดไป</p>
 
   <div class="test-cards">
-    <a class="test-card" style="border-color:rgba(56,189,248,.28);background:rgba(56,189,248,.05)" href="/lmln/quiz.php?kind=pretest">
+    <a class="test-card" style="border-color:rgba(56,189,248,.28);background:rgba(56,189,248,.05)" href="<?= BASE_URL ?>/quiz.php?kind=pretest">
       <div class="glyph" style="color:var(--cyan)">◷</div>
       <div style="flex:1"><div class="th">แบบทดสอบก่อนเรียน</div><div class="en">Pre-test · 10 ข้อ ปรนัย</div></div>
       <div class="status" style="color:var(--cyan)"><?= $pre ? (int)$pre['score'] . '/' . (int)$pre['total'] : 'เริ่มทำ →' ?></div>
     </a>
-    <a class="test-card" style="border-color:rgba(74,222,128,.28);background:rgba(74,222,128,.05)" href="/lmln/quiz.php?kind=posttest">
+    <a class="test-card" style="border-color:rgba(74,222,128,.28);background:rgba(74,222,128,.05)" href="<?= BASE_URL ?>/quiz.php?kind=posttest">
       <div class="glyph" style="color:var(--green)">✓</div>
       <div style="flex:1"><div class="th">แบบทดสอบหลังเรียน</div><div class="en">Post-test · 10 ข้อ ปรนัย</div></div>
       <div class="status" style="color:var(--green)"><?= $post ? (int)$post['score'] . '/' . (int)$post['total'] : 'เริ่มทำ →' ?></div>
@@ -43,7 +43,7 @@ Layout::start('บทเรียนทั้งหมด', $user, 'course');
         $status = $p['status'] ?? 'locked';
         $ok = $status === 'completed';
         $locked = $status === 'locked';
-        $href = $locked ? '#' : '/lmln/lesson.php?id=' . $l['id'];
+        $href = $locked ? '#' : url('/lesson.php?id=') . $l['id'];
     ?>
       <a class="lesson-card <?= $ok ? 'done' : '' ?> <?= $locked ? 'locked' : '' ?>" href="<?= $href ?>" <?= $locked ? 'onclick="return false"' : '' ?>>
         <div class="lesson-num"><?= $ok ? '✓' : ($locked ? '🔒' : str_pad((string)$l['position'], 2, '0', STR_PAD_LEFT)) ?></div>

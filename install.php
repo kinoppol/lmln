@@ -20,6 +20,13 @@ declare(strict_types=1);
  * ติดตั้งเสร็จแล้วควรลบไฟล์นี้ทิ้ง หรือย้ายออกจาก document root
  */
 
+// ตัวติดตั้งไม่ได้โหลด config.php ตอนแสดงฟอร์ม จึงหา base path ของตัวเองแยก
+// (ไฟล์นี้อยู่ที่รากโปรเจ็ค base จึงเป็นโฟลเดอร์ของ SCRIPT_NAME ตรง ๆ)
+$BASE = rtrim(str_replace('\\', '/', dirname((string)($_SERVER['SCRIPT_NAME'] ?? ''))), '/');
+if ($BASE === '.' || $BASE === '/') {
+    $BASE = '';
+}
+
 const ROOT = __DIR__;
 const LOCK_FILE = ROOT . '/config/installed.lock';
 const DB_CONFIG_FILE = ROOT . '/config/db.local.php';
@@ -276,7 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $saved) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/lmln/public/css/style.css">
+<link rel="stylesheet" href="<?= $BASE ?>/public/css/style.css">
 <style>
   .install-wrap{max-width:720px;margin:0 auto;padding:46px 24px 70px}
   .check-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);font-size:12.5px}
@@ -317,8 +324,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $saved) {
       เพื่อความปลอดภัย ให้ลบไฟล์ <code>install.php</code> ทิ้งหลังติดตั้งเสร็จ
     </div>
     <div style="display:flex;gap:11px;margin-top:22px">
-      <a class="btn btn-primary" href="/lmln/login.php">ไปหน้าเข้าสู่ระบบ →</a>
-      <a class="btn btn-ghost" href="/lmln/install.php">ติดตั้งซ้ำอีกครั้ง</a>
+      <a class="btn btn-primary" href="<?= $BASE ?>/login.php">ไปหน้าเข้าสู่ระบบ →</a>
+      <a class="btn btn-ghost" href="<?= $BASE ?>/install.php">ติดตั้งซ้ำอีกครั้ง</a>
     </div>
 
   <?php else: ?>
@@ -345,7 +352,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $saved) {
       <?php endforeach; ?>
     </div>
 
-    <form method="post" action="/lmln/install.php" class="card" style="padding:20px 22px">
+    <form method="post" action="<?= $BASE ?>/install.php" class="card" style="padding:20px 22px">
       <div style="font-size:13px;font-weight:600;color:#e3efe9;margin-bottom:3px">การเชื่อมต่อฐานข้อมูล</div>
       <div style="font-size:11.5px;color:#5f736c;margin-bottom:16px">ค่าเริ่มต้นของ XAMPP คือ root โดยไม่มีรหัสผ่าน</div>
 

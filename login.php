@@ -3,7 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/bootstrap.php';
 
 if (Auth::currentUser()) {
-    header('Location: /lmln/dashboard.php');
+    header('Location: ' . url('/dashboard.php'));
     exit;
 }
 
@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email === '' || $password === '') {
         $error = 'กรุณากรอกอีเมลและรหัสผ่าน';
     } elseif (Auth::attempt($email, $password)) {
-        header('Location: /lmln/dashboard.php');
+        header('Location: ' . url('/dashboard.php'));
         exit;
     } else {
         $error = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
@@ -27,9 +27,9 @@ Layout::start('เข้าสู่ระบบ', null);
 <div class="auth-card">
   <div class="eyebrow">LINUXQUEST · LMS</div>
   <h1>เข้าสู่ระบบ</h1>
-  <p class="lead">ยังไม่มีบัญชี? <a href="/lmln/register.php">สมัครสมาชิก</a></p>
+  <p class="lead">ยังไม่มีบัญชี? <a href="<?= BASE_URL ?>/register.php">สมัครสมาชิก</a></p>
   <?php if ($error): ?><div class="alert alert-error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
-  <form method="post" action="/lmln/login.php">
+  <form method="post" action="<?= BASE_URL ?>/login.php">
     <?= Csrf::field() ?>
     <div class="field">
       <label for="email">อีเมล</label>

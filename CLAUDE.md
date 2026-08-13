@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-**LinuxQuest LMS** — a Thai-language learning platform for teaching Linux CLI, built as plain PHP 8 + MariaDB on XAMPP. No Composer, no build step, no framework, no test suite. Every page is a top-level `.php` file served directly by Apache from `C:\xampp\htdocs\lmln`, so **all URLs are absolute and `/lmln/`-prefixed** (`/lmln/dashboard.php`, `/lmln/public/css/style.css`). Changing the deploy directory means rewriting those paths everywhere.
+**LinuxQuest LMS** — a Thai-language learning platform for teaching Linux CLI, built as plain PHP 8 + MariaDB on XAMPP. No Composer, no build step, no framework, no test suite. Every page is a top-level `.php` file served directly by Apache (dev: `C:\xampp\htdocs\lmln`).
+
+**Never hardcode a URL path.** `config/config.php` derives `BASE_URL` at runtime by stripping the script's path-below-app-root off `SCRIPT_NAME`, so the app runs from any directory (`/lmln`, `/web`, document root) with no edits. Build every internal link with `url('/course.php')` in PHP code or `<?= BASE_URL ?>/course.php` in markup; JS gets it via `cfg.base` on the `LQ_LESSON` / `LQ_GAME` config objects. `install.php` computes its own `$BASE` because it renders before `config.php` is loaded. Override with the `LQ_BASE_URL` env var or a `base` key in `config/db.local.php` if detection ever fails (e.g. an odd rewrite setup).
 
 The UI is Thai-first (labels, error strings, seed content); English appears only as secondary/eyebrow text. Keep new user-facing strings Thai.
 

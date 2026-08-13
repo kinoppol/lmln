@@ -12,25 +12,25 @@ $lessonId = $kind === 'lesson' ? (int)($_GET['lesson_id'] ?? 0) : null;
 
 if ($kind === 'lesson') {
     if (!$lessonId || !Progress::canAccessLesson($userId, $lessonId)) {
-        header('Location: /lmln/course.php');
+        header('Location: ' . url('/course.php'));
         exit;
     }
     if (!Progress::tasksAllDone($userId, $lessonId)) {
-        header('Location: /lmln/lesson.php?id=' . $lessonId);
+        header('Location: ' . url('/lesson.php?id=') . $lessonId);
         exit;
     }
 }
 
 $quiz = QuizGrader::findQuiz($courseId, $kind, $lessonId);
 if (!$quiz) {
-    header('Location: /lmln/dashboard.php');
+    header('Location: ' . url('/dashboard.php'));
     exit;
 }
 $quizId = (int)$quiz['id'];
 
 function qsBase(string $kind, ?int $lessonId): string
 {
-    $s = '/lmln/quiz.php?kind=' . urlencode($kind);
+    $s = url('/quiz.php?kind=') . urlencode($kind);
     if ($lessonId) $s .= '&lesson_id=' . $lessonId;
     return $s;
 }
@@ -94,7 +94,7 @@ if ($q > $total) {
             }
         }
     }
-    header('Location: /lmln/quiz_result.php?attempt=' . $attemptId);
+    header('Location: ' . url('/quiz_result.php?attempt=') . $attemptId);
     exit;
 }
 
@@ -110,7 +110,7 @@ Layout::start($titleMap[$kind], $user, $kind === 'lesson' ? 'course' : '');
 <div class="page-narrow">
   <div class="quiz-topbar">
     <div class="eyebrow" style="color:<?= $accentMap[$kind] ?>"><?= $tagMap[$kind] ?></div>
-    <a href="/lmln/dashboard.php" style="font-size:11.5px;color:#6f837c">ออกจากแบบทดสอบ ✕</a>
+    <a href="<?= BASE_URL ?>/dashboard.php" style="font-size:11.5px;color:#6f837c">ออกจากแบบทดสอบ ✕</a>
   </div>
   <h1 style="font-size:24px"><?= htmlspecialchars($titleMap[$kind]) ?></h1>
   <div style="font-size:12.5px;color:#6f837c;margin-bottom:22px">
