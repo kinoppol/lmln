@@ -454,6 +454,11 @@ $teacherPass = 'TeachLinux#2569';
 $db->prepare('INSERT INTO users (email, password_hash, full_name, role) VALUES (?,?,?,?)')->execute([
     'teacher@linuxquest.local', password_hash($teacherPass, PASSWORD_DEFAULT), 'อ. ปิยะพงษ์ ศรีวัฒนา', 'teacher',
 ]);
+// ผู้สอนก็เข้าเรียนได้ จึงต้องมีแถวความคืบหน้าด้วย (ดู Progress::ensureRows)
+$db->prepare(
+    "INSERT IGNORE INTO user_lesson_progress (user_id, lesson_id, status)
+     SELECT ?, l.id, IF(l.position = 1, 'unlocked', 'locked') FROM lessons l"
+)->execute([(int)$db->lastInsertId()]);
 echo "  teacher account: teacher@linuxquest.local / $teacherPass (change after first login)\n";
 
 echo "Done.\n";

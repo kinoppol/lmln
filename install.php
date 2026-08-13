@@ -377,6 +377,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db->prepare('DELETE FROM users WHERE role = ?')->execute(['teacher']);
         $db->prepare('INSERT INTO users (email, password_hash, full_name, role) VALUES (?,?,?,?)')
             ->execute([$admin['email'], password_hash($admin['pass'], PASSWORD_DEFAULT), $admin['name'], 'teacher']);
+
+        // ผู้ดูแลก็เข้าเรียนได้ จึงต้องมีแถวความคืบหน้าเหมือนผู้เรียนทั่วไป ไม่งั้นทุกบทจะขึ้นว่าล็อก
+        $db->prepare(
+            "INSERT IGNORE INTO user_lesson_progress (user_id, lesson_id, status)
+             SELECT ?, l.id, IF(l.position = 1, 'unlocked', 'locked') FROM lessons l"
+        )->execute([(int)$db->lastInsertId()]);
         $log[] = 'สร้างบัญชีผู้ดูแลระบบ ' . $admin['email'] . ' แล้ว';
 
         // 8) schema.sql เป็นโครงสร้างล่าสุดอยู่แล้ว จึงบันทึกว่า migration ทุกตัวถูกใช้แล้ว

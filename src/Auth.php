@@ -11,7 +11,13 @@ final class Auth
         $stmt = Database::get()->prepare('SELECT * FROM users WHERE id = ?');
         $stmt->execute([$_SESSION['user_id']]);
         $user = $stmt->fetch();
-        return $user ?: null;
+        if (!$user) {
+            return null;
+        }
+
+        // กันบัญชีที่ไม่มีแถวความคืบหน้า (สร้างจาก install.php/seed หรือมีบทเรียนเพิ่มใหม่ภายหลัง)
+        Progress::ensureRows((int)$user['id']);
+        return $user;
     }
 
     public static function requireLogin(): array
@@ -64,12 +70,7 @@ final class Auth
             $userId = (int)$db->lastInsertId();
 
             // seed lesson progress: lesson 1 unlocked, rest locked
-            $lessons = $db->query('SELECT id, position FROM lessons ORDER BY position')->fetchAll();
-            $ins = $db->prepare('INSERT INTO user_lesson_progress (user_id, lesson_id, status) VALUES (?,?,?)');
-            foreach ($lessons as $l) {
-                $status = ((int)$l['position'] === 1) ? 'unlocked' : 'locked';
-                $ins->execute([$userId, $l['id'], $status]);
-            }
+            Progress::ensureRows($userId);
             $db->commit();
         } catch (Throwable $e) {
             $db->rollBack();

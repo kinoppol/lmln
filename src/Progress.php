@@ -19,6 +19,22 @@ final class Progress
         $stmt->execute([$amount, $userId]);
     }
 
+    /**
+     * เติมแถวความคืบหน้าที่ยังขาดให้ผู้ใช้: บทที่ 1 เปิด บทอื่นล็อก
+     *
+     * เรียกได้บ่อยเพราะอาศัย UNIQUE KEY (user_id, lesson_id) — แถวที่มีอยู่แล้ว
+     * จะถูกข้าม ไม่ทับสถานะเดิม จำเป็นเพราะบัญชีที่ไม่ได้สมัครผ่าน register.php
+     * (เช่นผู้ดูแลที่ install.php สร้าง) จะไม่มีแถวเหล่านี้ ทำให้ทุกบทขึ้นว่าล็อก
+     */
+    public static function ensureRows(int $userId): void
+    {
+        $stmt = Database::get()->prepare(
+            "INSERT IGNORE INTO user_lesson_progress (user_id, lesson_id, status)
+             SELECT ?, l.id, IF(l.position = 1, 'unlocked', 'locked') FROM lessons l"
+        );
+        $stmt->execute([$userId]);
+    }
+
     /** @return array<int,array> lesson_id => progress row */
     public static function all(int $userId): array
     {
