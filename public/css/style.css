@@ -205,6 +205,18 @@ h1{margin:0 0 6px;font-weight:700;color:#eaf6f0}
 .quiz-dots{display:flex;gap:5px;margin-bottom:26px}
 .quiz-dot{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.1)}
 .quiz-dot.correct{background:var(--green)} .quiz-dot.wrong{background:var(--red)} .quiz-dot.current{background:rgba(255,255,255,.35)}
+a.quiz-dot{cursor:pointer;transition:transform .12s ease}
+a.quiz-dot:hover{transform:scaleY(2.2)}
+
+/* ย้อนกลับไปแก้คำตอบก่อนส่ง */
+.q-option.picked{border-color:rgba(74,222,128,.45);background:rgba(74,222,128,.07)}
+.q-picked-tag{margin-left:auto;flex:none;font-size:10.5px;color:var(--green);background:rgba(74,222,128,.12);padding:2px 8px;border-radius:999px}
+.quiz-nav{display:flex;align-items:center;gap:10px;margin-top:18px;padding-top:15px;border-top:1px solid var(--border)}
+.quiz-recap{display:flex;gap:11px;align-items:flex-start;padding:11px 12px;border-radius:10px;border:1px solid var(--border);
+  background:rgba(255,255,255,.015);margin-bottom:8px;color:inherit}
+.quiz-recap:hover{border-color:rgba(74,222,128,.35);background:rgba(74,222,128,.04)}
+.quiz-recap-q{display:block;font-size:12.5px;color:#c3d4cd;line-height:1.6}
+.quiz-recap-a{display:block;font-size:11.5px;color:#6f837c;margin-top:3px}
 .quiz-card{padding:28px 30px;border-radius:16px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025)}
 .q-num{font-family:var(--mono);font-size:11.5px;margin-bottom:12px}
 .q-text{font-size:18px;line-height:1.6;font-weight:600;color:#eaf6f0;margin-bottom:6px}

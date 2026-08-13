@@ -68,6 +68,18 @@ final class QuizGrader
         return $questions;
     }
 
+    /** @return array<int,?int> question_id => selected_option_id ของการทำครั้งนั้น */
+    public static function answers(int $attemptId): array
+    {
+        $stmt = Database::get()->prepare('SELECT question_id, selected_option_id FROM quiz_answers WHERE attempt_id = ?');
+        $stmt->execute([$attemptId]);
+        $out = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $out[(int)$row['question_id']] = $row['selected_option_id'] === null ? null : (int)$row['selected_option_id'];
+        }
+        return $out;
+    }
+
     public static function startAttempt(int $userId, int $quizId): int
     {
         $stmt = Database::get()->prepare('INSERT INTO quiz_attempts (user_id, quiz_id, total) VALUES (?,?, (SELECT COUNT(*) FROM quiz_questions WHERE quiz_id = ?))');
