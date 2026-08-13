@@ -87,12 +87,11 @@ The games in [public/js/game.js](public/js/game.js) reuse the same `Terminal` cl
 
 ### Quiz flow
 
-[quiz.php](quiz.php) is one page handling all three kinds (`pretest` / `posttest` / `lesson`), driven by query string (`?kind=&lesson_id=&attempt=&q=&picked=`). It is a POST-redirect-GET loop, and `$revealPerQuestion` (true only for `lesson`) decides where that redirect lands:
+[quiz.php](quiz.php) is one page handling all three kinds (`pretest` / `posttest` / `lesson`), driven by query string (`?kind=&lesson_id=&attempt=&q=`). It is a POST-redirect-GET loop: answering redirects straight to `q + 1` with nothing revealed, and when `q > total` the attempt is graded and it redirects to [quiz_result.php](quiz_result.php), which shows the whole answer key — each question, the learner's choice, the correct option, the explanation.
 
-- **Lesson quizzes** are practice, so they redirect back to the same `q` with `picked` set — options lock, the correct one is marked, and the explanation shows before a link advances.
-- **Pre/post-tests** are measurement, so they redirect straight to `q + 1` with nothing revealed. The whole answer key — each question, the learner's choice, the correct option, and the explanation — appears once in [quiz_result.php](quiz_result.php).
+Question order is shuffled per attempt by `QuizGrader::shuffleForAttempt()`, which sorts on `md5(attemptId . '-' . questionId)`. That is deterministic, so the order survives the redirect loop and the review page without being stored anywhere; do **not** swap it for a seeded `mt_srand` shuffle, whose first draws correlate across the sequential attempt ids and kept picking the same opening question.
 
-When `q > total` the attempt is graded and it redirects to `quiz_result.php`. `QuizGrader::reviewRows()` drives both review styles and is built `FROM quiz_questions` with a `LEFT JOIN` onto the answers, so skipped questions still appear (with `is_correct` NULL, rendered as "ไม่ได้ตอบ"). Lesson quizzes are unreachable until `Progress::tasksAllDone()` — enforced server-side in `quiz.php`, with the link merely dimmed in `lesson.php`.
+`QuizGrader::reviewRows()` applies the same shuffle and renumbers 1..N so the answer key matches what the learner saw. It is built `FROM quiz_questions` with a `LEFT JOIN` onto the answers, so skipped questions still appear (with `is_correct` NULL, rendered as "ไม่ได้ตอบ"). Lesson quizzes are unreachable until `Progress::tasksAllDone()` — enforced server-side in `quiz.php`, with the link merely dimmed in `lesson.php`.
 
 [index.php](index.php) is the public landing page (features, learning path, login/register CTAs) and redirects logged-in users straight to the dashboard. It is the one page that must survive an uninstalled database — its stat queries are wrapped in a `try`/`catch` that falls back to constants and surfaces a link to `install.php`.
 

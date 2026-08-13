@@ -24,13 +24,41 @@ final class QuizGrader
         return $row ?: null;
     }
 
-    /** @return array<int,array> ordered questions with nested options (is_correct stripped) */
-    public static function questions(int $quizId): array
+    /**
+     * สลับลำดับข้อแบบ "สุ่มแต่คงที่" ต่อการทำหนึ่งครั้ง
+     *
+     * เรียงตามแฮชของ (attempt, question) ลำดับจึงเหมือนเดิมทุกครั้งที่โหลดหน้า
+     * (การทำข้อสอบวนด้วย POST-redirect-GET หลายรอบ และตอนดูเฉลย) แต่ต่างกัน
+     * ในแต่ละครั้งที่เริ่มทำใหม่ โดยไม่ต้องเก็บลำดับลงฐานข้อมูล
+     *
+     * ไม่ใช้ mt_srand เพราะ Mersenne Twister ให้ค่าแรก ๆ ที่สัมพันธ์กันเมื่อ seed
+     * ไล่กันทีละหนึ่ง (attempt id เป็นเลขรัน) ข้อแรกจึงซ้ำกันแทบทุกครั้ง
+     */
+    private static function shuffleForAttempt(array $rows, int $attemptId): array
+    {
+        usort($rows, function (array $a, array $b) use ($attemptId): int {
+            return strcmp(
+                md5($attemptId . '-' . $a['id']),
+                md5($attemptId . '-' . $b['id'])
+            );
+        });
+        return $rows;
+    }
+
+    /**
+     * @param int|null $attemptId ถ้าระบุ จะสลับลำดับข้อตามการทำครั้งนั้น
+     * @return array<int,array> questions พร้อม options ซ้อนอยู่
+     */
+    public static function questions(int $quizId, ?int $attemptId = null): array
     {
         $db = Database::get();
         $qStmt = $db->prepare('SELECT * FROM quiz_questions WHERE quiz_id = ? ORDER BY position');
         $qStmt->execute([$quizId]);
         $questions = $qStmt->fetchAll();
+
+        if ($attemptId) {
+            $questions = self::shuffleForAttempt($questions, $attemptId);
+        }
 
         $oStmt = $db->prepare('SELECT * FROM quiz_options WHERE question_id = ? ORDER BY position');
         foreach ($questions as &$q) {
@@ -114,12 +142,13 @@ final class QuizGrader
     /**
      * เฉลยรายข้อของการทำแบบทดสอบครั้งนั้น — ไล่จาก quiz_questions เป็นหลัก
      * เพื่อให้ข้อที่ไม่ได้ตอบก็ยังขึ้นในเฉลย (is_correct จะเป็น NULL)
+     * เรียงและนับข้อตามลำดับที่ผู้เรียนเห็นตอนทำ ไม่ใช่ลำดับในคลังข้อสอบ
      */
     public static function reviewRows(int $attemptId): array
     {
         $db = Database::get();
         $stmt = $db->prepare(
-            'SELECT qq.position, qq.question_text, qq.code_snippet, qq.is_mono, qq.explanation,
+            'SELECT qq.id, qq.position, qq.question_text, qq.code_snippet, qq.is_mono, qq.explanation,
                     qa.is_correct, qa.selected_option_id,
                     (SELECT option_text FROM quiz_options WHERE id = qa.selected_option_id) AS selected_text,
                     (SELECT option_text FROM quiz_options WHERE question_id = qq.id AND is_correct = 1 LIMIT 1) AS correct_text
@@ -129,6 +158,11 @@ final class QuizGrader
              ORDER BY qq.position'
         );
         $stmt->execute([$attemptId, $attemptId]);
-        return $stmt->fetchAll();
+        $rows = self::shuffleForAttempt($stmt->fetchAll(), $attemptId);
+
+        foreach ($rows as $i => &$row) {
+            $row['position'] = $i + 1; // นับใหม่ให้ตรงกับเลขข้อที่เห็นตอนทำ
+        }
+        return $rows;
     }
 }

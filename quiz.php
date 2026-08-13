@@ -35,9 +35,9 @@ function qsBase(string $kind, ?int $lessonId): string
     return $s;
 }
 
-// แบบทดสอบท้ายบทเป็นการฝึก จึงเฉลยทันทีทีละข้อ ส่วนก่อน/หลังเรียนเป็นการวัดผล
-// จึงไม่เฉลยระหว่างทำ แต่ไปแสดงเฉลยทั้งชุดในหน้าผลคะแนน (quiz_result.php)
-$revealPerQuestion = $kind === 'lesson';
+// แบบทดสอบทุกชนิดไม่เฉลยระหว่างทำ ตอบแล้วไปข้อถัดไปทันที
+// แล้วไปแสดงเฉลยทั้งชุดพร้อมคำอธิบายในหน้าผลคะแนน (quiz_result.php)
+// ลำดับข้อสุ่มต่อการทำหนึ่งครั้ง — ดู QuizGrader::questions()
 
 // ---- handle answer POST ----
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -54,16 +54,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     QuizGrader::submitAnswer($attemptId, $questionId, $optionId);
 
-    $next = qsBase($kind, $lessonId) . "&attempt=$attemptId";
-    $next .= $revealPerQuestion ? "&q=$q&picked=" . ($optionId ?? '0') : '&q=' . ($q + 1);
-    header('Location: ' . $next);
+    header('Location: ' . qsBase($kind, $lessonId) . "&attempt=$attemptId&q=" . ($q + 1));
     exit;
 }
 
 // ---- start a new attempt if none given ----
 $attemptId = (int)($_GET['attempt'] ?? 0);
 $q = max(1, (int)($_GET['q'] ?? 1));
-$picked = isset($_GET['picked']) ? (int)$_GET['picked'] : null;
 
 if (!$attemptId) {
     $attemptId = QuizGrader::startAttempt($userId, $quizId);
@@ -76,7 +73,7 @@ if (!$attempt || (int)$attempt['quiz_id'] !== $quizId) {
     exit;
 }
 
-$questions = QuizGrader::questions($quizId);
+$questions = QuizGrader::questions($quizId, $attemptId);
 $total = count($questions);
 
 // ---- finished all questions: grade + redirect to result ----
@@ -99,7 +96,6 @@ if ($q > $total) {
 }
 
 $question = $questions[$q - 1];
-$answered = $revealPerQuestion && $picked !== null;
 
 $titleMap = ['pretest' => 'แบบทดสอบก่อนเรียน', 'posttest' => 'แบบทดสอบหลังเรียน', 'lesson' => $quiz['title_th']];
 $tagMap = ['pretest' => 'PRE-TEST · ก่อนเรียน', 'posttest' => 'POST-TEST · หลังเรียน', 'lesson' => 'แบบทดสอบท้ายบท'];
@@ -114,7 +110,7 @@ Layout::start($titleMap[$kind], $user, $kind === 'lesson' ? 'course' : '');
   </div>
   <h1 style="font-size:24px"><?= htmlspecialchars($titleMap[$kind]) ?></h1>
   <div style="font-size:12.5px;color:#6f837c;margin-bottom:22px">
-    เลือกคำตอบที่ถูกที่สุดเพียงข้อเดียว<?= $revealPerQuestion ? '' : ' · ระบบจะเฉลยทุกข้อพร้อมคำอธิบายหลังทำครบทั้งชุด' ?>
+    เลือกคำตอบที่ถูกที่สุดเพียงข้อเดียว · ลำดับข้อสุ่มใหม่ทุกครั้งที่ทำ · ระบบจะเฉลยทุกข้อพร้อมคำอธิบายหลังทำครบทั้งชุด
   </div>
 
   <div class="quiz-dots">
@@ -133,26 +129,13 @@ Layout::start($titleMap[$kind], $user, $kind === 'lesson' ? 'course' : '');
       <input type="hidden" name="attempt" value="<?= $attemptId ?>">
       <input type="hidden" name="question_id" value="<?= (int)$question['id'] ?>">
       <input type="hidden" name="q" value="<?= $q ?>">
-      <?php foreach ($question['options'] as $i => $o):
-          $isPicked = $picked === (int)$o['id'];
-          $isCorrect = (int)$o['is_correct'] === 1;
-          $cls = $answered ? ($isCorrect ? 'correct' : ($isPicked ? 'wrong' : '')) : '';
-      ?>
-        <button type="submit" name="option_id" value="<?= (int)$o['id'] ?>" class="q-option <?= $cls ?>" <?= $answered ? 'disabled' : '' ?> style="width:100%;text-align:left;<?= $question['is_mono'] ? 'font-family:var(--mono)' : '' ?>">
+      <?php foreach ($question['options'] as $i => $o): ?>
+        <button type="submit" name="option_id" value="<?= (int)$o['id'] ?>" class="q-option" style="width:100%;text-align:left;<?= $question['is_mono'] ? 'font-family:var(--mono)' : '' ?>">
           <span class="q-key"><?= chr(65 + $i) ?></span>
           <span class="q-option-text"><?= htmlspecialchars($o['option_text']) ?></span>
-          <?php if ($answered): ?><span style="margin-left:auto;font-size:13px"><?= $isCorrect ? '✓' : ($isPicked ? '✕' : '') ?></span><?php endif; ?>
         </button>
       <?php endforeach; ?>
     </form>
-
-    <?php if ($answered): ?>
-      <div class="q-explain">
-        <div class="title">เฉลย · EXPLANATION</div>
-        <div class="body"><?= htmlspecialchars($question['explanation']) ?></div>
-      </div>
-      <a class="btn btn-primary" style="margin-top:18px" href="<?= qsBase($kind, $lessonId) ?>&attempt=<?= $attemptId ?>&q=<?= $q + 1 ?>"><?= $q >= $total ? 'ดูผลคะแนน' : 'ข้อถัดไป' ?> →</a>
-    <?php endif; ?>
   </div>
 </div>
 <?php
