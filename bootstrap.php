@@ -8,4 +8,5 @@ require_once __DIR__ . '/src/Auth.php';
 require_once __DIR__ . '/src/TerminalRules.php';
 require_once __DIR__ . '/src/Progress.php';
 require_once __DIR__ . '/src/QuizGrader.php';
+require_once __DIR__ . '/src/Migrator.php';
 require_once __DIR__ . '/src/Layout.php';

@@ -185,6 +185,15 @@ CREATE TABLE drills (
   accepted_answers JSON NOT NULL
 ) ENGINE=InnoDB;
 
+-- ---------------------------------------------------------------- migrations
+-- บันทึกว่า database/migrations/* ตัวไหนถูกใช้กับฐานข้อมูลนี้แล้ว (ดู src/Migrator.php)
+CREATE TABLE schema_migrations (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  version VARCHAR(20) NOT NULL UNIQUE,
+  name VARCHAR(190) NOT NULL,
+  applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 -- ---------------------------------------------------------------- certificates
 CREATE TABLE certificates (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

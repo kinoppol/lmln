@@ -24,7 +24,13 @@ mysql -u root -p < database/schema.sql
 php database/seed.php
 ```
 
-`seed.php` **truncates every table** and re-inserts all content; it is a content-authoring tool, not a migration. Any schema change means editing `database/schema.sql` and re-importing — there is no migration system. Seeding prints a teacher login (`teacher@linuxquest.local`); student accounts come from `register.php`.
+`seed.php` **truncates every table** and re-inserts all content; it is a content-authoring tool, not a migration.
+
+### Schema changes
+
+A schema change means **two** edits that must agree: `database/schema.sql` (what fresh installs get) and a new file in `database/migrations/` named `NNNN_name.sql` or `NNNN_name.php` (what existing databases get). [src/Migrator.php](src/Migrator.php) discovers them, tracks applied versions in `schema_migrations`, and [teacher/migrations.php](teacher/migrations.php) is the admin UI that runs pending ones — the sidebar badge counts them. `install.php` calls `Migrator::markAllApplied()` after a fresh install, since `schema.sql` is already current.
+
+MariaDB DDL is not transactional, so a half-failed migration cannot roll back: **every migration must be safe to re-run**, guarding with `Migrator::hasColumn()` / `hasTable()`. `.php` migrations `return function (PDO $db): void {…}` and exist for exactly that conditional logic; `.sql` files are split on `;` with `--` comments stripped (no `DELIMITER`/procedures). Seeding prints a teacher login (`teacher@linuxquest.local`); student accounts come from `register.php`.
 
 DB connection precedence in `config/config.php`: `LQ_DB_HOST` / `LQ_DB_PORT` / `LQ_DB_NAME` / `LQ_DB_USER` / `LQ_DB_PASS` env vars > `config/db.local.php` (installer-written, gitignored) > built-in XAMPP defaults. That file also defines the gating constants (`LESSON_COUNT`, `PASS_PCT_LESSON_QUIZ`, `PASS_PCT_POSTTEST`) and turns `display_errors` on — it is a dev config.
 
@@ -41,6 +47,7 @@ Every entry point starts with `require __DIR__ . '/bootstrap.php'`, which loads 
 - [src/Progress.php](src/Progress.php) — the gating state machine (below).
 - [src/QuizGrader.php](src/QuizGrader.php) — quiz lookup, attempt lifecycle, per-answer grading, pass computation against `quizzes.pass_threshold_pct`.
 - [src/TerminalRules.php](src/TerminalRules.php) — server-side verification of terminal exercises.
+- [src/Migrator.php](src/Migrator.php) — schema migrations (see "Schema changes" above).
 - [src/Csrf.php](src/Csrf.php) — session token; `Csrf::field()` in forms, `Csrf::requireValid()` on POST, `Csrf::verify()` in the JSON APIs (which check the token from the JSON body, not a header).
 
 ### The gating chain (the core domain logic)

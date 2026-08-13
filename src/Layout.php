@@ -12,6 +12,16 @@ final class Layout
         self::$currentUser = $user;
         $doneCount = $user ? Progress::doneCount((int)$user['id']) : 0;
         $level = $user ? Progress::level((int)$user['xp']) : 1;
+
+        // ป้ายเตือนจำนวน migration ที่ค้าง แสดงเฉพาะผู้สอน และห้ามทำให้หน้าอื่นล่มถ้าเช็กไม่ได้
+        $pendingMigrations = 0;
+        if ($user && $user['role'] === 'teacher') {
+            try {
+                $pendingMigrations = count(Migrator::pending(Database::get()));
+            } catch (Throwable $e) {
+                $pendingMigrations = 0;
+            }
+        }
         ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -62,6 +72,10 @@ final class Layout
         <div class="nav-group-label" style="margin-top:18px">ผู้สอน · INSTRUCTOR</div>
         <a class="nav-item <?= $active === 'teacher' ? 'active' : '' ?>" href="/lmln/teacher/dashboard.php">
           <span class="nav-glyph">▤</span><span class="nav-label">แดชบอร์ดผลเรียน</span>
+        </a>
+        <a class="nav-item <?= $active === 'migrations' ? 'active' : '' ?>" href="/lmln/teacher/migrations.php">
+          <span class="nav-glyph">⇪</span><span class="nav-label">ปรับปรุงฐานข้อมูล</span>
+          <?php if ($pendingMigrations > 0): ?><span class="nav-badge warn"><?= $pendingMigrations ?></span><?php endif; ?>
         </a>
       <?php endif; ?>
       <div class="spacer"></div>

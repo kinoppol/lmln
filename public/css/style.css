@@ -50,6 +50,7 @@ code{font-family:var(--mono)}
 .nav-glyph{font-family:var(--mono);font-size:12px;width:16px;text-align:center;color:#5f736c}
 .nav-label{flex:1;font-size:13px;font-weight:500}
 .nav-badge{font-family:var(--mono);font-size:9.5px;padding:2px 6px;border-radius:999px;background:rgba(74,222,128,.14);color:var(--green)}
+.nav-badge.warn{background:rgba(251,191,36,.16);color:var(--amber)}
 .nav-progress{padding:12px 11px;border-radius:11px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
 .nav-progress-row{display:flex;justify-content:space-between;font-size:11px;color:#7d8f89;margin-bottom:7px}
 .nav-progress-row .pct{font-family:var(--mono);color:var(--green)}
@@ -385,6 +386,22 @@ h1{margin:0 0 6px;font-weight:700;color:#eaf6f0}
 .alert{padding:12px 14px;border-radius:9px;font-size:13px;margin-bottom:16px}
 .alert-error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:#fca5a5}
 .alert-ok{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:var(--green-soft)}
+
+/* หน้าปรับปรุงโครงสร้างฐานข้อมูล (teacher/migrations.php) */
+.mig-row{display:flex;gap:13px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--border)}
+.mig-row:last-child{border-bottom:none}
+.mig-badge{flex:none;width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:11px;font-weight:700;margin-top:1px}
+.mig-badge.ok{background:rgba(74,222,128,.14);color:var(--green)}
+.mig-badge.wait{background:rgba(251,191,36,.14);color:var(--amber)}
+.mig-name{font-size:13px;color:#d6e4de;cursor:pointer;list-style:none;font-weight:500}
+.mig-name::-webkit-details-marker{display:none}
+.mig-name::before{content:'▸ ';color:var(--cyan);font-family:var(--mono);font-size:10px}
+details[open] > .mig-name::before{content:'▾ '}
+.mig-file{font-family:var(--mono);font-size:11px;color:#5f736c;margin:7px 0 6px}
+.mig-code{margin:0;padding:12px 14px;border-radius:9px;background:var(--panel2);border:1px solid var(--border);
+  font-family:var(--mono);font-size:11.5px;line-height:1.75;color:#9bb0a8;overflow-x:auto;white-space:pre;max-height:340px}
+.mig-status{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
 .auth-switch{margin-top:18px;font-size:12.5px;color:#7d8f89;text-align:center}
 
 /* teacher */

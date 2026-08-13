@@ -226,7 +226,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ->execute([$admin['email'], password_hash($admin['pass'], PASSWORD_DEFAULT), $admin['name'], 'teacher']);
         $log[] = 'สร้างบัญชีผู้ดูแลระบบ ' . $admin['email'] . ' แล้ว';
 
-        // 8) ล็อกไฟล์บอกสถานะการติดตั้ง (ไม่เก็บรหัสผ่าน)
+        // 8) schema.sql เป็นโครงสร้างล่าสุดอยู่แล้ว จึงบันทึกว่า migration ทุกตัวถูกใช้แล้ว
+        //    ไม่งั้นหน้า migrations จะเห็นเป็นค้างและรันซ้ำโดยไม่จำเป็น
+        require_once ROOT . '/src/Migrator.php';
+        $log[] = 'บันทึกสถานะ migration แล้ว ' . Migrator::markAllApplied($db) . ' รายการ';
+
+        // 9) ล็อกไฟล์บอกสถานะการติดตั้ง (ไม่เก็บรหัสผ่าน)
         file_put_contents(LOCK_FILE, json_encode([
             'installed_at' => date('c'),
             'db_name' => $form['name'],
