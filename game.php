@@ -40,7 +40,40 @@ Layout::start($game['title_th'], $user, 'games');
     <div id="gameHud" style="display:flex"></div>
   </div>
 
-  <?php if ($code === 'egg'): ?>
+  <?php if ($code === 'same'): ?>
+    <?php // SameGame — ตารางเป็น DOM ล้วน ไม่ใช้ canvas และไม่ต้องมีลูปแอนิเมชัน ?>
+    <div class="same-wrap">
+      <div class="same-panel">
+        <div class="same-board" id="sameBoard"></div>
+        <div class="same-side">
+          <div class="same-stat"><span class="lbl">คะแนน</span><span class="val" id="sameScore">0</span></div>
+          <div class="same-stat"><span class="lbl">บล็อกที่เหลือ</span><span class="val" id="sameLeft">0</span></div>
+          <div class="same-stat"><span class="lbl">กลุ่มที่เลือก</span><span class="val" id="sameSel">—</span></div>
+          <div class="same-hint" id="sameHint">
+            กดกลุ่มบล็อกสีเดียวกันที่ติดกันตั้งแต่ 2 ช่อง<br>
+            คะแนนของกลุ่ม = (จำนวนช่อง − 2)² · กลุ่มใหญ่คุ้มกว่ามาก<br>
+            เคลียร์ได้หมดกระดานรับโบนัส 300
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" id="sameRestart">เริ่มกระดานใหม่</button>
+          <a class="btn btn-ghost btn-sm" href="<?= BASE_URL ?>/games.php">กลับโซนเกม</a>
+        </div>
+      </div>
+
+      <div class="egg-overlay" id="sameOver" hidden style="position:fixed">
+        <div class="egg-overlay-card">
+          <div style="font-size:12px;color:#6f837c;letter-spacing:.08em;margin-bottom:6px">จบกระดาน · NO MOVES LEFT</div>
+          <div style="font-family:var(--mono);font-size:52px;font-weight:700;color:var(--green);line-height:1" id="sameFinalScore">0</div>
+          <div style="font-size:12.5px;color:#8ea59d;margin:6px 0 4px" id="sameFinalDetail"></div>
+          <div style="font-size:13px;font-weight:600;color:#eaf6f0;margin-bottom:18px" id="sameFinalMsg"></div>
+          <div style="display:flex;gap:11px;justify-content:center">
+            <button type="button" class="btn btn-primary" id="sameAgainBtn">เล่นอีกครั้ง</button>
+            <a class="btn btn-ghost" href="<?= BASE_URL ?>/games.php">กลับโซนเกม</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <?php elseif ($code === 'egg'): ?>
     <?php // เกมคลายเครียด วาดทั้งหมดบน canvas ไม่ใช้ Terminal จำลอง ?>
     <div class="egg-wrap">
       <div class="egg-stage">
@@ -140,7 +173,8 @@ Layout::start($game['title_th'], $user, 'games');
   <?php endif; ?>
 </div>
 
-<?php if ($code !== 'egg'): ?><script src="<?= BASE_URL ?>/public/js/terminal-engine.js"></script><?php endif; ?>
+<?php $relaxGames = ['egg' => 'egg.js', 'same' => 'same.js']; ?>
+<?php if (!isset($relaxGames[$code])): ?><script src="<?= BASE_URL ?>/public/js/terminal-engine.js"></script><?php endif; ?>
 <script>
 window.LQ_GAME = {
   base: <?= json_encode(BASE_URL) ?>,
@@ -150,7 +184,7 @@ window.LQ_GAME = {
   csrf: <?= json_encode(Csrf::token()) ?>
 };
 </script>
-<?php // เกมโยนไข่ไม่ใช้ Terminal จำลอง จึงแยกสคริปต์ออกจาก game.js ?>
-<script src="<?= BASE_URL ?>/public/js/<?= $code === 'egg' ? 'egg.js' : 'game.js' ?>"></script>
+<?php // เกมคลายเครียดไม่ใช้ Terminal จำลอง จึงแยกสคริปต์ออกจาก game.js ?>
+<script src="<?= BASE_URL ?>/public/js/<?= $relaxGames[$code] ?? 'game.js' ?>"></script>
 <?php
 Layout::end();
