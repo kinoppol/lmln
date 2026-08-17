@@ -228,7 +228,7 @@ if (!$authorized) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ยืนยันสิทธิ์ติดตั้ง · LinuxQuest LMS</title>
-<link rel="stylesheet" href="<?= $BASE ?>/public/css/style.css">
+<link rel="stylesheet" href="<?= $BASE ?>/public/css/style.css?v=<?= (int)@filemtime(ROOT . '/public/css/style.css') ?>">
 </head>
 <body>
 <div class="app-shell"><main class="app-main auth-main">
@@ -426,7 +426,7 @@ $hasTablesNow = $_SERVER['REQUEST_METHOD'] !== 'POST' && $installedBefore;
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?= $BASE ?>/public/css/style.css">
+<link rel="stylesheet" href="<?= $BASE ?>/public/css/style.css?v=<?= (int)@filemtime(ROOT . '/public/css/style.css') ?>">
 <style>
   .install-wrap{max-width:720px;margin:0 auto;padding:46px 24px 70px}
   .check-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);font-size:12.5px}

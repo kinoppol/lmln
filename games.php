@@ -99,7 +99,12 @@ Layout::start('โซนเกมฝึกทักษะ', $user, 'games');
           </div>
         <?php else: ?>
           <div class="game-footer">
-            <span style="font-size:11.5px;color:<?= $best !== false && $best !== null ? 'var(--amber)' : '#5f736c' ?>;font-family:var(--mono)"><?= $best !== false && $best !== null ? 'สถิติสูงสุด ' . (int)$best . ' คะแนน' : 'ยังไม่เคยเล่น' ?></span>
+            <?php
+              // เคยเล่นแต่ยังไม่ได้คะแนน ให้บอกตามนั้น ไม่ใช่โฆษณาว่า "สถิติสูงสุด 0"
+              $played = $best !== false && $best !== null;
+              $bestText = !$played ? 'ยังไม่เคยเล่น' : ((int)$best === 0 ? 'เคยเล่นแล้ว · ยังไม่ทำคะแนน' : 'สถิติสูงสุด ' . (int)$best . ' คะแนน');
+            ?>
+            <span style="font-size:11.5px;color:<?= $played && (int)$best > 0 ? 'var(--amber)' : '#5f736c' ?>;font-family:var(--mono)"><?= $bestText ?></span>
             <span style="font-size:12.5px;font-weight:700;color:var(--green)">เล่นเลย →</span>
           </div>
         <?php endif; ?>

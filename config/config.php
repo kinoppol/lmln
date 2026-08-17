@@ -44,6 +44,21 @@ function url(string $path): string
     return BASE_URL . '/' . ltrim($path, '/');
 }
 
+/**
+ * ลิงก์ไฟล์ static พร้อมเลขเวอร์ชันจากเวลาแก้ไขไฟล์
+ * asset('/public/css/style.css') => /web/public/css/style.css?v=1786...
+ *
+ * จำเป็นเพราะเบราว์เซอร์แคช CSS/JS ไว้ พอดีพลอยโค้ดใหม่ผู้ใช้จะยังได้ไฟล์เก่า
+ * ทำให้หน้าตาเพี้ยนหรือสคริปต์ใหม่ไม่ทำงาน จนกว่าจะกด hard refresh เอง
+ */
+function asset(string $path): string
+{
+    $path = '/' . ltrim($path, '/');
+    $file = dirname(__DIR__) . $path;
+    $version = is_file($file) ? (string)filemtime($file) : '0';
+    return BASE_URL . $path . '?v=' . $version;
+}
+
 // ---- app ----
 define('APP_NAME', 'LinuxQuest LMS');
 define('COURSE_CODE', 'LNX-101');

@@ -177,7 +177,8 @@
     const term = new T.Terminal(gameVfs(code), meta.home.slice());
     term.toolLine = meta.toolLine;
 
-    const state = { score: 0, cleaned: [], room: 0, fixed: 0, won: false };
+    // paidFixes = จำนวนข้อของเกม repair ที่จ่ายคะแนนไปแล้ว กัน sys --check ซ้ำแล้วได้คะแนนซ้ำ
+    const state = { score: 0, cleaned: [], room: 0, fixed: 0, paidFixes: 0, won: false };
 
     term.custom = function (cmd, args, rest, flags, cwd, push) {
       if (cmd === 'av') {
@@ -246,6 +247,14 @@
         const fixed = checks.filter(c => c.ok).length;
         push('  ผ่าน ' + fixed + ' / 4 ข้อ', fixed === 4 ? C.GREEN : C.AMBER);
         state.fixed = fixed;
+
+        // ให้คะแนนตามจำนวนข้อที่ซ่อมได้ นับเฉพาะข้อที่ยังไม่เคยจ่าย
+        if (fixed > state.paidFixes) {
+          const gained = (fixed - state.paidFixes) * 200;
+          state.score += gained;
+          state.paidFixes = fixed;
+          push('  +' + gained + ' คะแนน', C.GREEN);
+        }
         return true;
       }
       return false;
@@ -341,7 +350,8 @@
       if (!won) return;
       state.won = true;
       const left = deadline ? Math.max(0, Math.round((deadline - Date.now()) / 1000)) : 0;
-      const bonus = deadline ? left * 3 : 0;
+      // เกมที่ไม่มีลิมิตเวลาไม่มีโบนัสเวลา จึงให้โบนัสจบภารกิจแทน ไม่งั้นคะแนนจะดูขาด ๆ
+      const bonus = deadline ? left * 3 : 100;
       state.score += bonus;
       winMsg.textContent = 'ได้ ' + state.score + ' คะแนน +120 XP' + (code === 'virus' ? ' — ระบบสะอาดแล้ว' : '');
       winBox.style.display = '';

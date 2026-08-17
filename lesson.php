@@ -110,7 +110,7 @@ Layout::start($lesson['title_th'], $user, 'course');
   </div>
 </div>
 
-<script src="<?= BASE_URL ?>/public/js/terminal-engine.js"></script>
+<script src="<?= asset('/public/js/terminal-engine.js') ?>"></script>
 <script>
 window.LQ_LESSON = {
   base: <?= json_encode(BASE_URL) ?>,
@@ -121,6 +121,6 @@ window.LQ_LESSON = {
   tasksTotal: <?= count($tasks) ?>
 };
 </script>
-<script src="<?= BASE_URL ?>/public/js/lesson.js"></script>
+<script src="<?= asset('/public/js/lesson.js') ?>"></script>
 <?php
 Layout::end();

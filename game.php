@@ -174,7 +174,7 @@ Layout::start($game['title_th'], $user, 'games');
 </div>
 
 <?php $relaxGames = ['egg' => 'egg.js', 'same' => 'same.js']; ?>
-<?php if (!isset($relaxGames[$code])): ?><script src="<?= BASE_URL ?>/public/js/terminal-engine.js"></script><?php endif; ?>
+<?php if (!isset($relaxGames[$code])): ?><script src="<?= asset('/public/js/terminal-engine.js') ?>"></script><?php endif; ?>
 <script>
 window.LQ_GAME = {
   base: <?= json_encode(BASE_URL) ?>,
@@ -185,6 +185,6 @@ window.LQ_GAME = {
 };
 </script>
 <?php // เกมคลายเครียดไม่ใช้ Terminal จำลอง จึงแยกสคริปต์ออกจาก game.js ?>
-<script src="<?= BASE_URL ?>/public/js/<?= $relaxGames[$code] ?? 'game.js' ?>"></script>
+<script src="<?= asset('/public/js/' . ($relaxGames[$code] ?? 'game.js')) ?>"></script>
 <?php
 Layout::end();
