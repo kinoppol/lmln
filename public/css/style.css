@@ -276,6 +276,18 @@ a.quiz-dot:hover{transform:scaleY(2.2)}
 .game-card.locked .game-desc{color:#6f837c}
 .game-card.blocked{border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.04)}
 .game-tag.lock{background:rgba(251,191,36,.13);color:var(--amber)}
+.game-tag.free{background:rgba(56,189,248,.13);color:var(--cyan)}
+
+/* เกมคลายเครียด "โยนไข่" (public/js/egg.js) */
+.egg-wrap{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px}
+.egg-stage{position:relative;width:100%;max-width:720px;border-radius:16px;overflow:hidden;
+  border:1px solid rgba(74,222,128,.18);box-shadow:0 24px 60px rgba(0,0,0,.5);line-height:0}
+.egg-stage canvas{width:100%;height:auto;display:block;touch-action:none;cursor:none}
+.egg-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:rgba(4,8,7,.82);backdrop-filter:blur(3px);line-height:normal}
+.egg-overlay[hidden]{display:none}
+.egg-overlay-card{max-width:420px;text-align:center}
+.egg-note{font-size:11.5px;color:#5f736c;text-align:center;max-width:640px;line-height:1.8}
 .game-req{position:relative;margin-top:13px;padding:11px 13px;border-radius:10px;border:1px solid rgba(251,191,36,.18);background:rgba(251,191,36,.045)}
 .game-req-head{font-size:10.5px;letter-spacing:.07em;color:var(--amber);margin-bottom:8px}
 .game-req-row{display:flex;gap:9px;align-items:flex-start;font-size:12px;color:#b9cbc4;padding:3px 0;line-height:1.6}

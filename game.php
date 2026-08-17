@@ -17,7 +17,8 @@ if (!$game) {
 // เกมจะเล่นได้ต่อเมื่อเริ่มเรียนแล้ว และผ่านบทเรียนที่เกมนี้ใช้ครบทุกบท
 // (games.php เป็นที่เดียวที่อธิบายว่ายังขาดอะไร จึงเด้งกลับไปที่นั่น)
 $userId = (int)$user['id'];
-if (!Progress::arcadeGate($userId)['unlocked'] || !Progress::gameGate($userId, $game)['unlocked']) {
+$gate = Progress::gameGate($userId, $game);
+if (!$gate['freeplay'] && (!Progress::arcadeGate($userId)['unlocked'] || !$gate['unlocked'])) {
     header('Location: ' . url('/games.php?locked=') . urlencode($code));
     exit;
 }
@@ -39,7 +40,51 @@ Layout::start($game['title_th'], $user, 'games');
     <div id="gameHud" style="display:flex"></div>
   </div>
 
-  <?php if ($code === 'drill'): ?>
+  <?php if ($code === 'egg'): ?>
+    <?php // เกมคลายเครียด วาดทั้งหมดบน canvas ไม่ใช้ Terminal จำลอง ?>
+    <div class="egg-wrap">
+      <div class="egg-stage">
+        <canvas id="eggCanvas" width="720" height="520" aria-label="เกมโยนไข่"></canvas>
+
+        <div class="egg-overlay" id="eggStart">
+          <div class="egg-overlay-card">
+            <div style="font-size:44px;line-height:1;margin-bottom:10px">🥚</div>
+            <div style="font-size:20px;font-weight:700;color:#eaf6f0;margin-bottom:8px">โยนไข่ · Egg Toss</div>
+            <p style="font-size:12.5px;line-height:1.9;color:#9bb0a8;margin:0 0 18px">
+              ขยับตะกร้าไปรับไข่ที่แม่ไก่โยนลงมาให้ทัน · รับติดกันได้โบนัสคอมโบ<br>
+              🥚 ไข่ธรรมดา +1 · 🥇 ไข่ทอง +5 · พลาดได้ 3 ครั้ง<br>
+              <span style="color:#6f837c">เลื่อนด้วยเมาส์ นิ้ว หรือปุ่มลูกศร ← → · เว้นวรรค = หยุดชั่วคราว</span>
+            </p>
+            <button type="button" class="btn btn-primary" id="eggStartBtn">เริ่มเล่น →</button>
+          </div>
+        </div>
+
+        <div class="egg-overlay" id="eggPause" hidden>
+          <div class="egg-overlay-card">
+            <div style="font-size:19px;font-weight:700;color:#eaf6f0;margin-bottom:14px">พักก่อน ⏸</div>
+            <button type="button" class="btn btn-primary" id="eggResumeBtn">เล่นต่อ</button>
+          </div>
+        </div>
+
+        <div class="egg-overlay" id="eggOver" hidden>
+          <div class="egg-overlay-card">
+            <div style="font-size:12px;color:#6f837c;letter-spacing:.08em;margin-bottom:6px">จบเกม · GAME OVER</div>
+            <div style="font-family:var(--mono);font-size:52px;font-weight:700;color:var(--green);line-height:1" id="eggFinalScore">0</div>
+            <div style="font-size:12.5px;color:#8ea59d;margin:6px 0 4px" id="eggFinalDetail"></div>
+            <div style="font-size:13px;font-weight:600;color:#eaf6f0;margin-bottom:18px" id="eggFinalMsg"></div>
+            <div style="display:flex;gap:11px;justify-content:center">
+              <button type="button" class="btn btn-primary" id="eggAgainBtn">เล่นอีกครั้ง</button>
+              <a class="btn btn-ghost" href="<?= BASE_URL ?>/games.php">กลับโซนเกม</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="egg-note">
+        เกมนี้เล่นได้ทุกเมื่อ ไม่ต้องผ่านบทเรียน — พักสมองแล้วค่อยกลับไปเรียนต่อ · คะแนนสูงสุดถูกบันทึกในกระดานผู้นำเหมือนเกมอื่น
+      </div>
+    </div>
+
+  <?php elseif ($code === 'drill'): ?>
     <div class="drill-wrap" id="drillWrap">
       <div class="drill-box" id="drillLive">
         <div class="bar-track" style="margin-bottom:34px"><div class="bar-fill" id="drillBar" style="width:100%"></div></div>
@@ -95,7 +140,7 @@ Layout::start($game['title_th'], $user, 'games');
   <?php endif; ?>
 </div>
 
-<script src="<?= BASE_URL ?>/public/js/terminal-engine.js"></script>
+<?php if ($code !== 'egg'): ?><script src="<?= BASE_URL ?>/public/js/terminal-engine.js"></script><?php endif; ?>
 <script>
 window.LQ_GAME = {
   base: <?= json_encode(BASE_URL) ?>,
@@ -105,6 +150,7 @@ window.LQ_GAME = {
   csrf: <?= json_encode(Csrf::token()) ?>
 };
 </script>
-<script src="<?= BASE_URL ?>/public/js/game.js"></script>
+<?php // เกมโยนไข่ไม่ใช้ Terminal จำลอง จึงแยกสคริปต์ออกจาก game.js ?>
+<script src="<?= BASE_URL ?>/public/js/<?= $code === 'egg' ? 'egg.js' : 'game.js' ?>"></script>
 <?php
 Layout::end();

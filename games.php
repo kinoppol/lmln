@@ -55,10 +55,11 @@ Layout::start('โซนเกมฝึกทักษะ', $user, 'games');
     <?php foreach ($games as $g):
         $bestStmt->execute([$userId, $g['id']]);
         $best = $bestStmt->fetchColumn();
-        $glyph = ['virus' => '☣', 'drill' => '⚡', 'escape' => '🔑', 'repair' => '🛠'][$g['code']] ?? '▶';
+        $glyph = ['virus' => '☣', 'drill' => '⚡', 'escape' => '🔑', 'repair' => '🛠', 'egg' => '🥚'][$g['code']] ?? '▶';
 
         $gate = Progress::gameGate($userId, $g);
-        $open = $arcade['unlocked'] && $gate['unlocked'];
+        // เกมคลายเครียด (ไม่ผูกบทเรียน) ข้ามประตูโซนเกมไปเลย
+        $open = $gate['freeplay'] || ($arcade['unlocked'] && $gate['unlocked']);
         $justBlocked = $blockedCode !== '' && $blockedCode === $g['code'];
     ?>
       <?php if ($open): ?>
@@ -70,6 +71,7 @@ Layout::start('โซนเกมฝึกทักษะ', $user, 'games');
         <div class="game-ghost"><?= $open ? $glyph : '🔒' ?></div>
         <div style="position:relative;display:flex;align-items:center;gap:8px">
           <span class="game-tag <?= $diffClass($g['difficulty']) ?>"><?= htmlspecialchars($g['difficulty']) ?></span>
+          <?php if ($gate['freeplay']): ?><span class="game-tag free">เล่นได้เลย</span><?php endif; ?>
           <?php if (!$open): ?><span class="game-tag lock">ล็อกอยู่ · <?= htmlspecialchars($gate['doneOf']) ?> บท</span><?php endif; ?>
         </div>
         <div class="game-th"><?= htmlspecialchars($g['title_th']) ?></div>

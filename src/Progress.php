@@ -208,8 +208,9 @@ final class Progress
             json_decode((string)($game['required_lessons'] ?? '[]'), true) ?: []
         )));
 
+        // ไม่ผูกกับบทเรียนใดเลย = เกมคลายเครียด เล่นได้เสมอ ไม่ต้องรอเปิดโซนเกมด้วย
         if (!$required) {
-            return ['unlocked' => true, 'required' => [], 'missing' => [], 'doneOf' => '0/0'];
+            return ['unlocked' => true, 'required' => [], 'missing' => [], 'doneOf' => '0/0', 'freeplay' => true];
         }
 
         $in = implode(',', array_map('strval', $required));
@@ -234,6 +235,7 @@ final class Progress
             'required' => $required,
             'missing' => $missing,
             'doneOf' => (count($rows) - count($missing)) . '/' . count($rows),
+            'freeplay' => false,
         ];
     }
 
