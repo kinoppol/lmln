@@ -40,6 +40,71 @@ final class Auth
         return $user;
     }
 
+    /**
+     * สวมสิทธิ์ผู้เรียน (ผู้สอนเท่านั้น)
+     *
+     * เก็บ id ของผู้สอนไว้ใน impersonator_id แล้วสลับ user_id เป็นของผู้เรียน
+     * ทุกหน้าจึงเห็นสภาพเดียวกับที่ผู้เรียนคนนั้นเห็นจริง ๆ รวมถึงบทที่ยังล็อกอยู่
+     * และเพราะบทบาทที่อ่านได้กลายเป็นผู้เรียน หน้าของผู้สอนจึงถูกปิดไปด้วยเอง
+     * เลิกสวมสิทธิ์เมื่อกดออกจากระบบ (ดู logout.php) แล้วได้สิทธิ์ผู้สอนคืน
+     */
+    public static function impersonate(int $targetId): array
+    {
+        $actor = self::currentUser();
+        if (!$actor || $actor['role'] !== 'teacher') {
+            return [false, 'เฉพาะผู้สอนเท่านั้นที่สวมสิทธิ์ผู้เรียนได้'];
+        }
+        if (self::isImpersonating()) {
+            return [false, 'กำลังสวมสิทธิ์อยู่แล้ว กรุณาคืนสิทธิ์ก่อน'];
+        }
+        if ($targetId === (int)$actor['id']) {
+            return [false, 'สวมสิทธิ์บัญชีตัวเองไม่ได้'];
+        }
+
+        $stmt = Database::get()->prepare('SELECT id, role FROM users WHERE id = ?');
+        $stmt->execute([$targetId]);
+        $target = $stmt->fetch();
+        if (!$target) {
+            return [false, 'ไม่พบบัญชีผู้เรียนนี้'];
+        }
+        if ($target['role'] === 'teacher') {
+            return [false, 'สวมสิทธิ์บัญชีผู้สอนคนอื่นไม่ได้'];
+        }
+
+        $_SESSION['impersonator_id'] = (int)$actor['id'];
+        $_SESSION['user_id'] = (int)$target['id'];
+        return [true, null];
+    }
+
+    public static function isImpersonating(): bool
+    {
+        return !empty($_SESSION['impersonator_id']);
+    }
+
+    /** ผู้สอนที่กำลังสวมสิทธิ์อยู่ (ใช้แสดงบนแถบเตือน) */
+    public static function impersonator(): ?array
+    {
+        if (!self::isImpersonating()) {
+            return null;
+        }
+        $stmt = Database::get()->prepare('SELECT id, full_name, role FROM users WHERE id = ?');
+        $stmt->execute([$_SESSION['impersonator_id']]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    /** คืนสิทธิ์ให้ผู้สอน — คืน true ถ้ามีการสวมสิทธิ์อยู่จริง */
+    public static function stopImpersonating(): bool
+    {
+        $teacher = self::impersonator();
+        unset($_SESSION['impersonator_id']);
+        if (!$teacher || $teacher['role'] !== 'teacher') {
+            return false; // บัญชีผู้สอนถูกลบ/เปลี่ยนบทบาทระหว่างสวมสิทธิ์ ให้ออกจากระบบไปเลย
+        }
+        $_SESSION['user_id'] = (int)$teacher['id'];
+        return true;
+    }
+
     public static function register(string $email, string $password, string $fullName, string $role, ?string $eduLevel, ?string $major, ?string $school): array
     {
         $db = Database::get();

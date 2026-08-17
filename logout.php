@@ -11,6 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 Csrf::requireValid($_POST['csrf_token'] ?? null);
 
+// กำลังสวมสิทธิ์ผู้เรียนอยู่: การออกจากระบบคือการคืนสิทธิ์ผู้สอน ไม่ใช่ปิด session
+if (Auth::isImpersonating() && Auth::stopImpersonating()) {
+    header('Location: ' . url('/teacher/students.php?returned=1'));
+    exit;
+}
+
 Auth::logout();
 header('Location: ' . url('/login.php'));
 exit;

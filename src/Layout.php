@@ -36,6 +36,19 @@ final class Layout
 </head>
 <body>
 <div class="app-shell">
+<?php if ($user && Auth::isImpersonating()): $actor = Auth::impersonator(); ?>
+  <?php // แถบเตือนว่ากำลังดูระบบในฐานะผู้เรียนคนนี้ ไม่ใช่บัญชีตัวเอง ?>
+  <div class="impersonate-bar">
+    <span class="impersonate-dot"></span>
+    <span>กำลังสวมสิทธิ์ <strong><?= htmlspecialchars($user['full_name']) ?></strong> — ทุกอย่างที่เห็นและ XP ที่ได้จะเป็นของบัญชีนี้</span>
+    <span class="spacer"></span>
+    <?php if ($actor): ?><span class="impersonate-who">ผู้ดูแล: <?= htmlspecialchars($actor['full_name']) ?></span><?php endif; ?>
+    <form method="post" action="<?= BASE_URL ?>/logout.php" style="display:inline">
+      <?= Csrf::field() ?>
+      <button type="submit" class="btn btn-sm btn-danger">คืนสิทธิ์ผู้ดูแล ↩</button>
+    </form>
+  </div>
+<?php endif; ?>
 <?php if ($user): ?>
   <header class="app-header">
     <a class="brand" href="<?= BASE_URL ?>/dashboard.php">
@@ -73,6 +86,9 @@ final class Layout
         <a class="nav-item <?= $active === 'teacher' ? 'active' : '' ?>" href="<?= BASE_URL ?>/teacher/dashboard.php">
           <span class="nav-glyph">▤</span><span class="nav-label">แดชบอร์ดผลเรียน</span>
         </a>
+        <a class="nav-item <?= $active === 'students' ? 'active' : '' ?>" href="<?= BASE_URL ?>/teacher/students.php">
+          <span class="nav-glyph">☰</span><span class="nav-label">จัดการผู้เรียน</span>
+        </a>
         <a class="nav-item <?= $active === 'migrations' ? 'active' : '' ?>" href="<?= BASE_URL ?>/teacher/migrations.php">
           <span class="nav-glyph">⇪</span><span class="nav-label">ปรับปรุงฐานข้อมูล</span>
           <?php if ($pendingMigrations > 0): ?><span class="nav-badge warn"><?= $pendingMigrations ?></span><?php endif; ?>
@@ -84,7 +100,7 @@ final class Layout
         <div class="bar-track"><div class="bar-fill" style="width:<?= round($doneCount / LESSON_COUNT * 100) ?>%"></div></div>
         <div class="nav-progress-sub"><?= $doneCount ?> จาก <?= LESSON_COUNT ?> บทเรียน</div>
       </div>
-      <button type="button" class="nav-logout" id="logoutBtn">ออกจากระบบ ↺</button>
+      <button type="button" class="nav-logout" id="logoutBtn"><?= Auth::isImpersonating() ? 'คืนสิทธิ์ผู้ดูแล ↩' : 'ออกจากระบบ ↺' ?></button>
     </nav>
     <main class="app-main">
 <?php else: ?>
@@ -100,18 +116,24 @@ final class Layout
     </main>
   </div>
 <?php if ($user): ?>
+  <?php $impersonating = Auth::isImpersonating(); ?>
   <div class="modal-backdrop" id="logoutModal" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle">
-      <div class="modal-icon">↺</div>
-      <div class="modal-title" id="logoutModalTitle">ออกจากระบบ?</div>
+      <div class="modal-icon"><?= $impersonating ? '↩' : '↺' ?></div>
+      <div class="modal-title" id="logoutModalTitle"><?= $impersonating ? 'คืนสิทธิ์ผู้ดูแล?' : 'ออกจากระบบ?' ?></div>
       <p class="modal-body">
-        กำลังออกจากระบบในชื่อ <strong><?= htmlspecialchars($user['full_name']) ?></strong><br>
-        ความคืบหน้าและคะแนนที่ทำไว้ถูกบันทึกไว้แล้ว เข้าสู่ระบบใหม่เมื่อไหร่ก็เรียนต่อจากเดิมได้
+        <?php if ($impersonating): ?>
+          เลิกสวมสิทธิ์ <strong><?= htmlspecialchars($user['full_name']) ?></strong> แล้วกลับไปใช้บัญชีผู้ดูแลของคุณ<br>
+          สิ่งที่ทำไว้ในบัญชีผู้เรียนนี้ถูกบันทึกตามปกติ
+        <?php else: ?>
+          กำลังออกจากระบบในชื่อ <strong><?= htmlspecialchars($user['full_name']) ?></strong><br>
+          ความคืบหน้าและคะแนนที่ทำไว้ถูกบันทึกไว้แล้ว เข้าสู่ระบบใหม่เมื่อไหร่ก็เรียนต่อจากเดิมได้
+        <?php endif; ?>
       </p>
       <form method="post" action="<?= BASE_URL ?>/logout.php" class="modal-actions">
         <?= Csrf::field() ?>
         <button type="button" class="btn btn-ghost" id="logoutCancel">ยกเลิก</button>
-        <button type="submit" class="btn btn-danger">ออกจากระบบ</button>
+        <button type="submit" class="btn btn-danger"><?= $impersonating ? 'คืนสิทธิ์ผู้ดูแล' : 'ออกจากระบบ' ?></button>
       </form>
     </div>
   </div>

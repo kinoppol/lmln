@@ -76,6 +76,7 @@ h1{margin:0 0 6px;font-weight:700;color:#eaf6f0}
 .btn-ghost{border:1px solid rgba(255,255,255,.12);color:#9bb0a8;background:transparent;font-weight:400}
 .btn-sm{padding:9px 16px;font-size:12.5px}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn-xs{padding:6px 11px;font-size:11.5px;font-weight:600}
 .btn-danger{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.45);color:#fca5a5}
 .btn-danger:hover{background:rgba(248,113,113,.2);color:#fecaca}
 
@@ -375,6 +376,29 @@ a.quiz-dot:hover{transform:scaleY(2.2)}
   .landing-h1{font-size:29px}
   .landing{padding:0 20px 32px}
 }
+
+/* จัดการผู้เรียน (teacher/students.php) */
+.student-filter{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.student-filter input[type=text]{flex:1;min-width:240px;padding:10px 13px;border-radius:9px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.03);color:var(--fg);font-size:13px}
+.student-filter select{padding:10px 13px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background-color:#111b18;color:var(--fg);font-size:13px}
+.student-filter select option{background-color:#111b18;color:#e8f5ee}
+.student-filter input:focus,.student-filter select:focus{outline:none;border-color:rgba(74,222,128,.5)}
+.student-row{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid rgba(255,255,255,.05)}
+.student-row:last-child{border-bottom:none}
+.student-row:hover{background:rgba(255,255,255,.015)}
+.student-head{font-size:10.5px;color:#4c5f59;letter-spacing:.06em;background:rgba(255,255,255,.02)}
+.student-head:hover{background:rgba(255,255,255,.02)}
+.student-name{display:block;font-size:13px;color:#d6e4de;font-weight:600}
+.student-sub{display:block;font-size:11px;color:#5f736c;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.student-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0 16px}
+
+/* แถบเตือนตอนสวมสิทธิ์ผู้เรียน */
+.impersonate-bar{flex:none;display:flex;align-items:center;gap:11px;padding:9px 22px;font-size:12px;color:#fde68a;
+  background:rgba(251,191,36,.12);border-bottom:1px solid rgba(251,191,36,.3)}
+.impersonate-bar strong{color:#fff7e0}
+.impersonate-dot{width:7px;height:7px;border-radius:99px;background:var(--amber);animation:lqpulse 1.5s infinite;flex:none}
+.impersonate-who{font-size:11px;color:#c9b57a}
 
 .auth-card{width:100%;max-width:460px;padding:34px 36px;border-radius:16px;border:1px solid rgba(74,222,128,.16);background:rgba(255,255,255,.02)}
 .auth-card h1{font-size:22px}
