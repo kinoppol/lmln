@@ -410,6 +410,15 @@ a.quiz-dot:hover{transform:scaleY(2.2)}
   .landing{padding:0 20px 32px}
 }
 
+/* ตัวกรองสาขาในกระดานผู้นำ */
+.board-filter{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+.board-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;font-size:12px;
+  border:1px solid rgba(255,255,255,.1);color:#9bb0a8;background:rgba(255,255,255,.02)}
+.board-chip:hover{border-color:rgba(74,222,128,.35);color:#c3d4cd}
+.board-chip span{font-family:var(--mono);font-size:10.5px;color:#5f736c}
+.board-chip.active{border-color:rgba(74,222,128,.5);background:rgba(74,222,128,.09);color:var(--green)}
+.board-chip.active span{color:var(--green-soft)}
+
 /* จัดการผู้เรียน (teacher/students.php) */
 .student-filter{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
 .student-filter input[type=text]{flex:1;min-width:240px;padding:10px 13px;border-radius:9px;border:1px solid rgba(255,255,255,.12);
