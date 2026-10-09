@@ -40,7 +40,43 @@ Layout::start($game['title_th'], $user, 'games');
     <div id="gameHud" style="display:flex"></div>
   </div>
 
-  <?php if ($code === 'same'): ?>
+  <?php if ($code === 'hanoi'): ?>
+    <?php // หอคอยฮานอย — DOM ล้วน กดเสาต้นทางแล้วกดเสาปลายทาง ?>
+    <div class="same-wrap">
+      <div class="same-panel">
+        <div class="hanoi-board" id="hanoiBoard"></div>
+        <div class="same-side">
+          <div class="same-stat"><span class="lbl">จำนวนแผ่น</span>
+            <select id="hanoiDisks" style="background:var(--panel2);color:#eaf6f0;border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-family:var(--mono)">
+              <option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option>
+            </select></div>
+          <div class="same-stat"><span class="lbl">จำนวนครั้ง</span><span class="val" id="hanoiMoves">0</span></div>
+          <div class="same-stat"><span class="lbl">น้อยที่สุด</span><span class="val" id="hanoiMin">15</span></div>
+          <div class="same-hint">
+            กดเสาเพื่อหยิบแผ่นบนสุด แล้วกดเสาปลายทางเพื่อวาง<br>
+            ห้ามวางแผ่นใหญ่ทับแผ่นเล็ก<br>
+            ย้ายทั้งหอไปเสาขวาสุดให้ได้ด้วยจำนวนครั้งน้อยที่สุด (2ⁿ − 1)
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" id="hanoiRestart">เริ่มใหม่</button>
+          <a class="btn btn-ghost btn-sm" href="<?= BASE_URL ?>/games.php">กลับโซนเกม</a>
+        </div>
+      </div>
+
+      <div class="egg-overlay" id="hanoiOver" hidden style="position:fixed">
+        <div class="egg-overlay-card">
+          <div style="font-size:12px;color:#6f837c;letter-spacing:.08em;margin-bottom:6px">สำเร็จ · TOWER MOVED</div>
+          <div style="font-family:var(--mono);font-size:52px;font-weight:700;color:var(--green);line-height:1" id="hanoiFinalScore">0</div>
+          <div style="font-size:12.5px;color:#8ea59d;margin:6px 0 4px" id="hanoiFinalDetail"></div>
+          <div style="font-size:13px;font-weight:600;color:#eaf6f0;margin-bottom:18px" id="hanoiFinalMsg"></div>
+          <div style="display:flex;gap:11px;justify-content:center">
+            <button type="button" class="btn btn-primary" id="hanoiAgainBtn">เล่นอีกครั้ง</button>
+            <a class="btn btn-ghost" href="<?= BASE_URL ?>/games.php">กลับโซนเกม</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <?php elseif ($code === 'same'): ?>
     <?php // SameGame — ตารางเป็น DOM ล้วน ไม่ใช้ canvas และไม่ต้องมีลูปแอนิเมชัน ?>
     <div class="same-wrap">
       <div class="same-panel">
@@ -173,7 +209,7 @@ Layout::start($game['title_th'], $user, 'games');
   <?php endif; ?>
 </div>
 
-<?php $relaxGames = ['egg' => 'egg.js', 'same' => 'same.js']; ?>
+<?php $relaxGames = ['egg' => 'egg.js', 'same' => 'same.js', 'hanoi' => 'hanoi.js']; ?>
 <?php if (!isset($relaxGames[$code])): ?><script src="<?= asset('/public/js/terminal-engine.js') ?>"></script><?php endif; ?>
 <script>
 window.LQ_GAME = {

@@ -309,6 +309,20 @@ a.quiz-dot:hover{transform:scaleY(2.2)}
 .same-stat .val{font-family:var(--mono);font-size:19px;font-weight:700;color:var(--green)}
 .same-hint{font-size:11.5px;line-height:1.9;color:#7d8f89;padding:12px 14px;border-radius:10px;
   border-left:2px solid rgba(56,189,248,.4);background:rgba(56,189,248,.045)}
+/* เกมคลายเครียด Tower of Hanoi (public/js/hanoi.js) */
+.hanoi-board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(600px,90vw);padding:14px;border-radius:14px;
+  border:1px solid rgba(74,222,128,.16);background:var(--panel2);box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.hanoi-peg{position:relative;height:260px;display:flex;flex-direction:column-reverse;align-items:center;gap:3px;padding:0 0 10px;
+  border:none;border-radius:10px;background:rgba(255,255,255,.02);cursor:pointer;font:inherit}
+.hanoi-peg::before{content:"";position:absolute;bottom:10px;top:26px;left:50%;width:6px;margin-left:-3px;border-radius:3px;background:#3a4a45}
+.hanoi-peg::after{content:"";position:absolute;bottom:4px;left:6%;right:6%;height:6px;border-radius:3px;background:#3a4a45}
+.hanoi-peg:hover{background:rgba(255,255,255,.045)}
+.hanoi-peg.sel{background:rgba(74,222,128,.08);outline:1px solid rgba(74,222,128,.4)}
+.hanoi-peg:focus-visible{outline:2px solid #fff}
+.hanoi-disk{position:relative;z-index:1;flex:none;height:20px;border-radius:6px;transition:transform .1s ease}
+.hanoi-peg.sel .hanoi-disk:last-child{transform:translateY(-14px);filter:brightness(1.35)}
+.hanoi-peg.bad{animation:hanoiShake .25s}
+@keyframes hanoiShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .game-req{position:relative;margin-top:13px;padding:11px 13px;border-radius:10px;border:1px solid rgba(251,191,36,.18);background:rgba(251,191,36,.045)}
 .game-req-head{font-size:10.5px;letter-spacing:.07em;color:var(--amber);margin-bottom:8px}
 .game-req-row{display:flex;gap:9px;align-items:flex-start;font-size:12px;color:#b9cbc4;padding:3px 0;line-height:1.6}
